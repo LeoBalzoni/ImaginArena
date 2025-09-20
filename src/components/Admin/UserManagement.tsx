@@ -1,53 +1,102 @@
-import { useState, useEffect } from 'react'
-import { AdminService } from '../../services/adminService'
-import type { User } from '../../lib/supabase'
-import { Shield, ShieldOff, Users, AlertTriangle } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { AdminService } from "../../services/adminService";
+import type { User } from "../../lib/supabase";
+import { useStore } from "../../store/useStore";
+import { Shield, ShieldOff, Users, AlertTriangle, Trash2 } from "lucide-react";
 
 export const UserManagement = () => {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const { user: currentUser } = useStore();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    loadUsers()
-  }, [])
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      const data = await AdminService.getAllUsers()
-      setUsers(data)
+      setLoading(true);
+      setError(null);
+      const data = await AdminService.getAllUsers();
+      setUsers(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load users')
+      setError(err instanceof Error ? err.message : "Failed to load users");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
-    const action = currentIsAdmin ? 'remove admin privileges from' : 'grant admin privileges to'
-    const user = users.find(u => u.id === userId)
-    
+    const action = currentIsAdmin
+      ? "remove admin privileges from"
+      : "grant admin privileges to";
+    const user = users.find((u) => u.id === userId);
+
     if (!confirm(`Are you sure you want to ${action} ${user?.username}?`)) {
-      return
+      return;
     }
 
     try {
-      setActionLoading(userId)
-      await AdminService.toggleUserAdminStatus(userId, !currentIsAdmin)
-      await loadUsers() // Refresh the list
+      setActionLoading(userId);
+      await AdminService.toggleUserAdminStatus(userId, !currentIsAdmin);
+      await loadUsers(); // Refresh the list
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update user admin status')
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to update user admin status"
+      );
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+
+    // Safety checks
+    if (userId === currentUser?.id) {
+      setError("Cannot delete your own account");
+      return;
+    }
+
+    if (user?.is_admin) {
+      setError("Cannot delete admin users. Remove admin privileges first.");
+      return;
+    }
+
+    // Double confirmation for user deletion
+    const confirmMessage = `⚠️ DANGER: This will permanently delete user "${user?.username}".
+
+This action will:
+• Remove the user from all tournaments
+• Delete all their submissions and votes
+• This CANNOT be undone
+
+Type "${user?.username}" to confirm deletion:`;
+
+    const confirmation = prompt(confirmMessage);
+
+    if (confirmation !== user?.username) {
+      return; // User cancelled or didn't type the username correctly
+    }
+
+    try {
+      setActionLoading(userId);
+      await AdminService.deleteUser(userId);
+      await loadUsers(); // Refresh the list
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete user");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString()
-  }
+    return new Date(dateString).toLocaleString();
+  };
 
   if (loading) {
     return (
@@ -57,7 +106,7 @@ export const UserManagement = () => {
           <p className="text-gray-600">Loading users...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -141,11 +190,13 @@ export const UserManagement = () => {
                     <span className="text-gray-400">Private</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.is_admin 
-                        ? 'bg-red-100 text-red-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.is_admin
+                          ? "bg-red-100 text-red-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
                       {user.is_admin ? (
                         <>
                           <Shield className="w-3 h-3 mr-1" />
@@ -163,25 +214,46 @@ export const UserManagement = () => {
                     {formatDate(user.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => handleToggleAdmin(user.id, user.is_admin)}
-                      disabled={actionLoading === user.id}
-                      className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                        user.is_admin
-                          ? 'text-red-600 hover:text-red-900 hover:bg-red-50'
-                          : 'text-blue-600 hover:text-blue-900 hover:bg-blue-50'
-                      } disabled:opacity-50`}
-                      title={user.is_admin ? 'Remove Admin' : 'Make Admin'}
-                    >
-                      {actionLoading === user.id ? (
-                        <div className="w-4 h-4 animate-spin border-2 border-current border-t-transparent rounded-full mr-1"></div>
-                      ) : user.is_admin ? (
-                        <ShieldOff className="w-4 h-4 mr-1" />
-                      ) : (
-                        <Shield className="w-4 h-4 mr-1" />
+                    <div className="flex items-center justify-end space-x-2">
+                      <button
+                        onClick={() =>
+                          handleToggleAdmin(user.id, user.is_admin)
+                        }
+                        disabled={actionLoading === user.id}
+                        className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                          user.is_admin
+                            ? "text-red-600 hover:text-red-900 hover:bg-red-50"
+                            : "text-blue-600 hover:text-blue-900 hover:bg-blue-50"
+                        } disabled:opacity-50`}
+                        title={user.is_admin ? "Remove Admin" : "Make Admin"}
+                      >
+                        {actionLoading === user.id ? (
+                          <div className="w-4 h-4 animate-spin border-2 border-current border-t-transparent rounded-full mr-1"></div>
+                        ) : user.is_admin ? (
+                          <ShieldOff className="w-4 h-4 mr-1" />
+                        ) : (
+                          <Shield className="w-4 h-4 mr-1" />
+                        )}
+                        {user.is_admin ? "Remove Admin" : "Make Admin"}
+                      </button>
+
+                      {/* Delete User Button - Only show for non-admin users and not current user */}
+                      {!user.is_admin && user.id !== currentUser?.id && (
+                        <button
+                          onClick={() => handleDeleteUser(user.id)}
+                          disabled={actionLoading === user.id}
+                          className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-red-600 hover:text-red-900 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                          title="Delete User"
+                        >
+                          {actionLoading === user.id ? (
+                            <div className="w-4 h-4 animate-spin border-2 border-current border-t-transparent rounded-full mr-1"></div>
+                          ) : (
+                            <Trash2 className="w-4 h-4 mr-1" />
+                          )}
+                          Delete
+                        </button>
                       )}
-                      {user.is_admin ? 'Remove Admin' : 'Make Admin'}
-                    </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -197,9 +269,9 @@ export const UserManagement = () => {
           disabled={loading}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
         >
-          {loading ? 'Loading...' : 'Refresh Users'}
+          {loading ? "Loading..." : "Refresh Users"}
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
