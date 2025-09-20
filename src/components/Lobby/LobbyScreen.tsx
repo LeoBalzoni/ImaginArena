@@ -1,7 +1,7 @@
-import React, {useEffect, useRef, useState} from 'react'
-import {Clock, Crown, Loader2, Play, Users} from 'lucide-react'
-import {useStore} from '../../store/useStore'
-import {TournamentService} from '../../services/tournamentService'
+import React, { useEffect, useRef, useState } from "react";
+import { Clock, Crown, Loader2, Play, Users } from "lucide-react";
+import { useStore } from "../../store/useStore";
+import { TournamentService } from "../../services/tournamentService";
 
 export const LobbyScreen: React.FC = () => {
   const {
@@ -11,90 +11,106 @@ export const LobbyScreen: React.FC = () => {
     setCurrentTournament,
     setParticipants,
     setError,
-    isUserInTournament
-  } = useStore()
+    isUserInTournament,
+  } = useStore();
 
-  const [isJoining, setIsJoining] = useState(false)
-  const [isLoadingTournament, setIsLoadingTournament] = useState(false)
-  const isLoadingRef = useRef(false)
+  const [isJoining, setIsJoining] = useState(false);
+  const [isLoadingTournament, setIsLoadingTournament] = useState(false);
+  const isLoadingRef = useRef(false);
 
   useEffect(() => {
     if (!isLoadingRef.current) {
-      isLoadingRef.current = true
+      isLoadingRef.current = true;
       loadTournament().finally(() => {
-        isLoadingRef.current = false
-      })
+        isLoadingRef.current = false;
+      });
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (currentTournament) {
-      return TournamentService.subscribeToTournamentUpdates(currentTournament.id)
+      return TournamentService.subscribeToTournamentUpdates(
+        currentTournament.id
+      );
     }
-  }, [currentTournament])
+  }, [currentTournament]);
 
   const loadTournament = async () => {
-    setIsLoadingTournament(true)
+    setIsLoadingTournament(true);
     try {
-      let tournament = await TournamentService.getCurrentTournament()
-      
+      let tournament = await TournamentService.getCurrentTournament();
+
       if (!tournament) {
-        tournament = await TournamentService.createTournament()
+        tournament = await TournamentService.createTournament();
       }
-      
-      setCurrentTournament(tournament)
-      
-      const tournamentParticipants = await TournamentService.getTournamentParticipants(tournament.id)
-      setParticipants(tournamentParticipants)
+
+      setCurrentTournament(tournament);
+
+      const tournamentParticipants =
+        await TournamentService.getTournamentParticipants(tournament.id);
+      setParticipants(tournamentParticipants);
     } catch (error) {
-      console.error('Failed to load tournament:', error)
-      setError(error instanceof Error ? error.message : 'Failed to load tournament')
+      console.error("Failed to load tournament:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to load tournament"
+      );
     } finally {
-      setIsLoadingTournament(false)
+      setIsLoadingTournament(false);
     }
-  }
+  };
 
   const joinTournament = async () => {
     if (!user || !currentTournament) {
-      console.error('Cannot join tournament: missing user or tournament', { user: !!user, currentTournament: !!currentTournament })
-      return
+      console.error("Cannot join tournament: missing user or tournament", {
+        user: !!user,
+        currentTournament: !!currentTournament,
+      });
+      return;
     }
 
-    console.log('Attempting to join tournament:', { tournamentId: currentTournament.id, userId: user.id })
-    setIsJoining(true)
+    console.log("Attempting to join tournament:", {
+      tournamentId: currentTournament.id,
+      userId: user.id,
+    });
+    setIsJoining(true);
     try {
-      await TournamentService.joinTournament(currentTournament.id, user.id)
-      console.log('Successfully joined tournament')
+      await TournamentService.joinTournament(currentTournament.id, user.id);
+      console.log("Successfully joined tournament");
       // Participants will be updated via subscription
     } catch (error) {
-      console.error('Failed to join tournament:', error)
-      setError(error instanceof Error ? error.message : 'Failed to join tournament')
+      console.error("Failed to join tournament:", error);
+      setError(
+        error instanceof Error ? error.message : "Failed to join tournament"
+      );
     } finally {
-      setIsJoining(false)
+      setIsJoining(false);
     }
-  }
+  };
 
   const startTournament = async () => {
-    if (!currentTournament) return
+    if (!currentTournament) return;
 
     try {
-      await TournamentService.startTournament(currentTournament.id)
+      await TournamentService.startTournament(currentTournament.id);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to start tournament')
+      setError(
+        error instanceof Error ? error.message : "Failed to start tournament"
+      );
     }
-  }
+  };
 
   const renderParticipantGrid = () => {
     const slots = Array.from({ length: 16 }, (_, i) => {
-      const participant = participants[i]
+      const participant = participants[i];
       return (
         <div
           key={i}
           className={`
             aspect-square rounded-lg border-2 border-dashed flex items-center justify-center
-            ${participant 
-              ? 'border-primary-300 bg-primary-50' 
-              : 'border-gray-300 bg-gray-50'
+            ${
+              participant
+                ? "border-primary-300 bg-primary-50"
+                : "border-gray-300 bg-gray-50"
             }
           `}
         >
@@ -116,29 +132,27 @@ export const LobbyScreen: React.FC = () => {
             </div>
           )}
         </div>
-      )
-    })
+      );
+    });
 
-    return (
-      <div className="grid grid-cols-4 gap-3 mb-8">
-        {slots}
-      </div>
-    )
-  }
+    return <div className="grid grid-cols-4 gap-3 mb-8">{slots}</div>;
+  };
 
   if (isLoadingTournament) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
       </div>
-    )
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="text-center mb-8">
         <Crown className="w-16 h-16 text-primary-600 mx-auto mb-4" />
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Prompt Battles</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          Prompt Battles
+        </h1>
         <p className="text-xl text-gray-600">Tournament Lobby</p>
       </div>
 
@@ -149,7 +163,11 @@ export const LobbyScreen: React.FC = () => {
           </h2>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Clock className="w-4 h-4" />
-            <span>{participants.length >= 2 ? 'Ready to start!' : 'Need at least 2 players...'}</span>
+            <span>
+              {participants.length >= 2
+                ? "Ready to start!"
+                : "Need at least 2 players..."}
+            </span>
           </div>
         </div>
 
@@ -167,7 +185,9 @@ export const LobbyScreen: React.FC = () => {
               ) : (
                 <Play className="w-4 h-4" />
               )}
-              {participants.length >= 16 ? 'Tournament Full' : 'Join Tournament'}
+              {participants.length >= 16
+                ? "Tournament Full"
+                : "Join Tournament"}
             </button>
           ) : (
             <div className="space-y-4">
@@ -177,13 +197,12 @@ export const LobbyScreen: React.FC = () => {
                   <span className="font-medium">You're in the tournament!</span>
                 </div>
                 <p className="text-sm text-green-600 mt-1">
-                  {participants.length >= 2 
-                    ? 'Tournament ready to start!'
-                    : 'Waiting for more players...'
-                  }
+                  {participants.length >= 2
+                    ? "Tournament ready to start!"
+                    : "Waiting for more players..."}
                 </p>
               </div>
-              
+
               {/* Manual start button */}
               {participants.length >= 2 && (
                 <button
@@ -200,7 +219,9 @@ export const LobbyScreen: React.FC = () => {
       </div>
 
       <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">How it works</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          How it works
+        </h3>
         <div className="space-y-3 text-sm text-gray-600">
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
@@ -218,16 +239,22 @@ export const LobbyScreen: React.FC = () => {
             <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
               3
             </div>
-            <p>Each match has a creative prompt - generate and submit your best image</p>
+            <p>
+              Each match has a creative prompt - generate and submit your best
+              image
+            </p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
               4
             </div>
-            <p>Other players vote for their favorite - winner advances to the next round</p>
+            <p>
+              Other players vote for their favorite - winner advances to the
+              next round
+            </p>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

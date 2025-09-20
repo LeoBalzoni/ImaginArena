@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "lint": "pretty-quick --staged --ignore-path .eslintignore && lint-staged",
-    "lint-all": "pretty-quick --ignore-path .eslintignore && lint-staged",
+    "lint-all": "prettier --write . --ignore-path .eslintignore",
     "pretty": "pretty-quick"
   },
   "dependencies": {

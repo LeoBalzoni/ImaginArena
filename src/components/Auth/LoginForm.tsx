@@ -1,61 +1,69 @@
-import React, { useState } from 'react'
-import { Mail, Github, Chrome, Loader2 } from 'lucide-react'
-import { AuthService } from '../../services/authService'
-import { useStore } from '../../store/useStore'
+import React, { useState } from "react";
+import { Mail, Github, Chrome, Loader2 } from "lucide-react";
+import { AuthService } from "../../services/authService";
+import { useStore } from "../../store/useStore";
 
 export const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [magicLinkSent, setMagicLinkSent] = useState(false)
-  const { setError } = useStore()
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const { setError } = useStore();
 
   const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email) return
+    e.preventDefault();
+    if (!email) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      await AuthService.signInWithMagicLink(email)
-      setMagicLinkSent(true)
+      await AuthService.signInWithMagicLink(email);
+      setMagicLinkSent(true);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to send magic link')
+      setError(
+        error instanceof Error ? error.message : "Failed to send magic link"
+      );
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGitHub = async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      await AuthService.signInWithGitHub()
+      await AuthService.signInWithGitHub();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to sign in with GitHub')
-      setIsLoading(false)
+      setError(
+        error instanceof Error ? error.message : "Failed to sign in with GitHub"
+      );
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogle = async () => {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      await AuthService.signInWithGoogle()
+      await AuthService.signInWithGoogle();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to sign in with Google')
-      setIsLoading(false)
+      setError(
+        error instanceof Error ? error.message : "Failed to sign in with Google"
+      );
+      setIsLoading(false);
     }
-  }
+  };
 
   if (magicLinkSent) {
     return (
       <div className="card max-w-md mx-auto">
         <div className="text-center">
           <Mail className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Check your email
+          </h2>
           <p className="text-gray-600 mb-4">
             We've sent a magic link to <strong>{email}</strong>
           </p>
@@ -70,19 +78,26 @@ export const LoginForm: React.FC = () => {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="card max-w-md mx-auto">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Prompt Battles</h1>
-        <p className="text-gray-600">Sign in to join the creative competition</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Welcome to Prompt Battles
+        </h1>
+        <p className="text-gray-600">
+          Sign in to join the creative competition
+        </p>
       </div>
 
       <form onSubmit={handleMagicLink} className="space-y-4 mb-6">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
             Email address
           </label>
           <input
@@ -138,5 +153,5 @@ export const LoginForm: React.FC = () => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};

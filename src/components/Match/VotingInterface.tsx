@@ -1,17 +1,17 @@
-import React, { useState } from 'react'
-import { Vote, Loader2, Users } from 'lucide-react'
-import { MatchService } from '../../services/matchService'
-import { useStore } from '../../store/useStore'
-import type { User, Submission, Vote as VoteType } from '../../lib/supabase'
+import React, { useState } from "react";
+import { Vote, Loader2, Users } from "lucide-react";
+import { MatchService } from "../../services/matchService";
+import { useStore } from "../../store/useStore";
+import type { User, Submission, Vote as VoteType } from "../../lib/supabase";
 
 interface VotingInterfaceProps {
-  matchId: string
-  player1: User
-  player2: User
-  player1Submission: Submission
-  player2Submission: Submission
-  canVote: boolean
-  votes: VoteType[]
+  matchId: string;
+  player1: User;
+  player2: User;
+  player1Submission: Submission;
+  player2Submission: Submission;
+  canVote: boolean;
+  votes: VoteType[];
 }
 
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({
@@ -21,51 +21,58 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
   player1Submission,
   player2Submission,
   canVote,
-  votes
+  votes,
 }) => {
-  const { user, setError } = useStore()
-  const [isVoting, setIsVoting] = useState(false)
-  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(null)
+  const { user, setError } = useStore();
+  const [isVoting, setIsVoting] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
+    null
+  );
 
   const handleVote = async (submissionId: string) => {
-    if (!user || !canVote) return
+    if (!user || !canVote) return;
 
-    setIsVoting(true)
-    setError(null)
+    setIsVoting(true);
+    setError(null);
 
     try {
-      await MatchService.voteForSubmission(matchId, user.id, submissionId)
+      await MatchService.voteForSubmission(matchId, user.id, submissionId);
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to submit vote')
+      setError(
+        error instanceof Error ? error.message : "Failed to submit vote"
+      );
     } finally {
-      setIsVoting(false)
+      setIsVoting(false);
     }
-  }
+  };
 
   const getVoteCount = (submissionId: string) => {
-    return votes.filter(v => v.voted_for_submission_id === submissionId).length
-  }
+    return votes.filter((v) => v.voted_for_submission_id === submissionId)
+      .length;
+  };
 
-  const hasUserVoted = () => {
-    return votes.some(v => v.voter_id === user?.id)
-  }
+  // const hasUserVoted = () => {
+  //   return votes.some((v) => v.voter_id === user?.id);
+  // };
 
   const getUserVote = () => {
-    return votes.find(v => v.voter_id === user?.id)
-  }
+    return votes.find((v) => v.voter_id === user?.id);
+  };
 
-  const userVote = getUserVote()
+  const userVote = getUserVote();
 
   return (
     <div className="grid md:grid-cols-2 gap-6">
       {/* Player 1 Submission */}
-      <div className={`card transition-all ${
-        userVote?.voted_for_submission_id === player1Submission.id 
-          ? 'border-green-500 bg-green-50' 
-          : canVote && selectedSubmission === player1Submission.id
-            ? 'border-primary-500 bg-primary-50'
-            : ''
-      }`}>
+      <div
+        className={`card transition-all ${
+          userVote?.voted_for_submission_id === player1Submission.id
+            ? "border-green-500 bg-green-50"
+            : canVote && selectedSubmission === player1Submission.id
+            ? "border-primary-500 bg-primary-50"
+            : ""
+        }`}
+      >
         <div className="flex items-center justify-between mb-4">
           <h4 className="font-semibold text-gray-900">{player1.username}</h4>
           <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -73,10 +80,10 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
             <span>{getVoteCount(player1Submission.id)} votes</span>
           </div>
         </div>
-        
-        <div 
+
+        <div
           className={`relative cursor-pointer rounded-lg overflow-hidden ${
-            canVote ? 'hover:ring-2 hover:ring-primary-300' : ''
+            canVote ? "hover:ring-2 hover:ring-primary-300" : ""
           }`}
           onClick={() => canVote && setSelectedSubmission(player1Submission.id)}
         >
@@ -99,7 +106,9 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
             onClick={() => handleVote(player1Submission.id)}
             disabled={isVoting}
             className={`btn-primary w-full mt-4 flex items-center justify-center gap-2 ${
-              selectedSubmission === player1Submission.id ? 'ring-2 ring-primary-300' : ''
+              selectedSubmission === player1Submission.id
+                ? "ring-2 ring-primary-300"
+                : ""
             }`}
           >
             {isVoting ? (
@@ -113,13 +122,15 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
       </div>
 
       {/* Player 2 Submission */}
-      <div className={`card transition-all ${
-        userVote?.voted_for_submission_id === player2Submission.id 
-          ? 'border-green-500 bg-green-50' 
-          : canVote && selectedSubmission === player2Submission.id
-            ? 'border-primary-500 bg-primary-50'
-            : ''
-      }`}>
+      <div
+        className={`card transition-all ${
+          userVote?.voted_for_submission_id === player2Submission.id
+            ? "border-green-500 bg-green-50"
+            : canVote && selectedSubmission === player2Submission.id
+            ? "border-primary-500 bg-primary-50"
+            : ""
+        }`}
+      >
         <div className="flex items-center justify-between mb-4">
           <h4 className="font-semibold text-gray-900">{player2.username}</h4>
           <div className="flex items-center gap-1 text-sm text-gray-600">
@@ -127,10 +138,10 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
             <span>{getVoteCount(player2Submission.id)} votes</span>
           </div>
         </div>
-        
-        <div 
+
+        <div
           className={`relative cursor-pointer rounded-lg overflow-hidden ${
-            canVote ? 'hover:ring-2 hover:ring-primary-300' : ''
+            canVote ? "hover:ring-2 hover:ring-primary-300" : ""
           }`}
           onClick={() => canVote && setSelectedSubmission(player2Submission.id)}
         >
@@ -153,7 +164,9 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
             onClick={() => handleVote(player2Submission.id)}
             disabled={isVoting}
             className={`btn-primary w-full mt-4 flex items-center justify-center gap-2 ${
-              selectedSubmission === player2Submission.id ? 'ring-2 ring-primary-300' : ''
+              selectedSubmission === player2Submission.id
+                ? "ring-2 ring-primary-300"
+                : ""
             }`}
           >
             {isVoting ? (
@@ -166,5 +179,5 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
         )}
       </div>
     </div>
-  )
-}
+  );
+};

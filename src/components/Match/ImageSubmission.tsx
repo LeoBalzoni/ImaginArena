@@ -1,87 +1,93 @@
-import React, { useState, useRef } from 'react'
-import { Upload, Image as ImageIcon, Loader2, X } from 'lucide-react'
-import { MatchService } from '../../services/matchService'
-import { useStore } from '../../store/useStore'
+import React, { useState, useRef } from "react";
+import { Upload, Image as ImageIcon, Loader2, X } from "lucide-react";
+import { MatchService } from "../../services/matchService";
+import { useStore } from "../../store/useStore";
 
 interface ImageSubmissionProps {
-  matchId: string
+  matchId: string;
 }
 
-export const ImageSubmission: React.FC<ImageSubmissionProps> = ({ matchId }) => {
-  const { user, setError } = useStore()
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
+  matchId,
+}) => {
+  const { user, setError } = useStore();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file')
-      return
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      setError('Image must be smaller than 10MB')
-      return
+      setError("Image must be smaller than 10MB");
+      return;
     }
 
-    setSelectedFile(file)
-    
+    setSelectedFile(file);
+
     // Create preview URL
-    const url = URL.createObjectURL(file)
-    setPreviewUrl(url)
-  }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    const file = event.dataTransfer.files[0]
-    if (file && file.type.startsWith('image/')) {
-      setSelectedFile(file)
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
     }
-  }
+  };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-  }
+    event.preventDefault();
+  };
 
   const clearSelection = () => {
-    setSelectedFile(null)
+    setSelectedFile(null);
     if (previewUrl) {
-      URL.revokeObjectURL(previewUrl)
-      setPreviewUrl(null)
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
     }
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = "";
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    if (!selectedFile || !user) return
+    if (!selectedFile || !user) return;
 
-    setIsUploading(true)
-    setError(null)
+    setIsUploading(true);
+    setError(null);
 
     try {
-      await MatchService.submitImage(matchId, user.id, selectedFile)
-      clearSelection()
+      await MatchService.submitImage(matchId, user.id, selectedFile);
+      clearSelection();
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to submit image')
+      setError(
+        error instanceof Error ? error.message : "Failed to submit image"
+      );
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   return (
     <div className="card">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Submit Your Image</h3>
-      
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Submit Your Image
+      </h3>
+
       {!selectedFile ? (
         <div
           className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
@@ -93,9 +99,7 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({ matchId }) => 
           <p className="text-lg font-medium text-gray-900 mb-2">
             Drop your image here, or click to browse
           </p>
-          <p className="text-sm text-gray-500">
-            PNG, JPG, GIF up to 10MB
-          </p>
+          <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -119,14 +123,14 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({ matchId }) => 
               <X className="w-4 h-4" />
             </button>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <ImageIcon className="w-4 h-4" />
               <span>{selectedFile.name}</span>
               <span>({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
             </div>
-            
+
             <div className="flex gap-2">
               <button
                 onClick={clearSelection}
@@ -145,12 +149,12 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({ matchId }) => 
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                {isUploading ? 'Submitting...' : 'Submit Image'}
+                {isUploading ? "Submitting..." : "Submit Image"}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
