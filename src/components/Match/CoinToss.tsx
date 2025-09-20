@@ -113,7 +113,7 @@ export const CoinToss: React.FC<CoinTossProps> = ({
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes bounce {
           0% {
             transform: translateY(0px) rotateY(0deg);
