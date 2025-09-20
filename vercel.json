@@ -8,11 +8,6 @@
     "VITE_SUPABASE_URL": "$VITE_SUPABASE_URL",
     "VITE_SUPABASE_ANON_KEY": "$VITE_SUPABASE_ANON_KEY"
   },
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
