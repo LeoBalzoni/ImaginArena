@@ -407,17 +407,41 @@ export const MatchScreen: React.FC = () => {
             )}
           </div>
 
-          <VotingInterface
-            matchId={currentMatch.id}
-            player1={player1!}
-            player2={player2!}
-            player1Submission={player1Submission!}
-            player2Submission={player2Submission!}
-            canVote={canUserVote()}
-            votes={votes}
-            showVoteCounts={user?.is_admin || false}
-            prompt={currentMatch.prompt}
-          />
+          {player1Submission && player2Submission && player1 && player2 ? (
+            <VotingInterface
+              matchId={currentMatch.id}
+              player1={player1}
+              player2={player2}
+              player1Submission={player1Submission}
+              player2Submission={player2Submission}
+              canVote={canUserVote()}
+              votes={votes}
+              showVoteCounts={user?.is_admin || false}
+              prompt={currentMatch.prompt}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Waiting for Submissions
+                </h3>
+                <p className="text-gray-600">
+                  Both players need to submit their images before voting can begin.
+                </p>
+                {!player1Submission && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    • Waiting for {player1?.username || "Player 1"}
+                  </p>
+                )}
+                {!player2Submission && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    • Waiting for {player2?.username || "Player 2"}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
