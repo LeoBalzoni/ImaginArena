@@ -102,26 +102,45 @@ export class AuthService {
    * Initialize auth listener
    */
   static initAuthListener() {
-    const { setUser, setLoading } = useStore.getState()
-    
     supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event, session?.user?.id)
+      const { setUser, setLoading, setError } = useStore.getState()
+      
       setLoading(true)
+      setError(null)
       
       try {
         if (session?.user) {
+          console.log('User authenticated, checking profile...')
           // Try to get existing profile
           try {
-            const profile = await AuthService.getUserProfile(session.user.id)
+            console.log('Calling getUserProfile for user:', session.user.id)
+            // Add timeout to prevent hanging
+            const profilePromise = AuthService.getUserProfile(session.user.id)
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile lookup timeout')), 5000)
+            )
+            const profile = await Promise.race([profilePromise, timeoutPromise])
+            console.log('Profile found:', profile)
             setUser(profile)
+            console.log('User state updated, isAuthenticated should be true')
           } catch (error) {
-            // Profile doesn't exist, user needs to create one
+            console.log('Profile not found, user needs to create one:', error)
+            console.log('Error details:', error)
+            // Profile doesn't exist, but user is authenticated
+            // Set user to null but keep them authenticated so they can create a profile
             setUser(null)
+            // Manually set authenticated state since user is null
+            useStore.setState({ isAuthenticated: true })
+            console.log('Set isAuthenticated to true manually')
           }
         } else {
-          setUser(null)
+          console.log('No session, user not authenticated')
+          setUser(null) // This will also set isAuthenticated to false
         }
       } catch (error) {
         console.error('Auth state change error:', error)
+        setError(`Authentication error: ${error instanceof Error ? error.message : 'Unknown error'}`)
         setUser(null)
       } finally {
         setLoading(false)

@@ -94,10 +94,10 @@ CREATE POLICY "Users can join tournaments" ON tournament_participants FOR INSERT
 
 -- Functions for tournament management
 CREATE OR REPLACE FUNCTION get_tournament_participants(tournament_uuid UUID)
-RETURNS TABLE(user_id UUID, username TEXT, joined_at TIMESTAMP WITH TIME ZONE) AS $$
+RETURNS TABLE(id UUID, username TEXT, created_at TIMESTAMP WITH TIME ZONE) AS $$
 BEGIN
   RETURN QUERY
-  SELECT tp.user_id, u.username, tp.joined_at
+  SELECT u.id, u.username, u.created_at
   FROM tournament_participants tp
   JOIN users u ON tp.user_id = u.id
   WHERE tp.tournament_id = tournament_uuid
@@ -111,6 +111,8 @@ RETURNS VOID AS $$
 DECLARE
   i INTEGER;
   match_prompt TEXT;
+  num_participants INTEGER;
+  num_matches INTEGER;
   prompts TEXT[] := ARRAY[
     'A magical forest at sunset with glowing mushrooms',
     'A cyberpunk city street in the rain at night',
@@ -122,8 +124,11 @@ DECLARE
     'A medieval castle on a cliff overlooking the ocean'
   ];
 BEGIN
-  -- Create first round matches (16 players = 8 matches)
-  FOR i IN 1..8 LOOP
+  num_participants := array_length(participants, 1);
+  num_matches := num_participants / 2;
+  
+  -- Create first round matches based on number of participants
+  FOR i IN 1..num_matches LOOP
     -- Select random prompt
     match_prompt := prompts[1 + (random() * (array_length(prompts, 1) - 1))::INTEGER];
     

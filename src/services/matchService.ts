@@ -49,6 +49,12 @@ export class MatchService {
       .single()
 
     if (error) throw error
+    
+    // Manually refresh submissions to ensure UI updates immediately
+    const { setSubmissions } = useStore.getState()
+    const submissions = await this.getMatchSubmissions(matchId)
+    setSubmissions(submissions)
+    
     return data
   }
 

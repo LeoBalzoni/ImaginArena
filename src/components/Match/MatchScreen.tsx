@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import { Upload, Vote, Clock, Users, CheckCircle, Trophy } from 'lucide-react'
-import { useStore } from '../../store/useStore'
-import { MatchService } from '../../services/matchService'
-import { TournamentService } from '../../services/tournamentService'
-import { ImageSubmission } from './ImageSubmission'
-import { VotingInterface } from './VotingInterface'
+import React, {useEffect, useState} from 'react'
+import {CheckCircle, Clock, Trophy, Upload, Users, Vote} from 'lucide-react'
+import {useStore} from '../../store/useStore'
+import {MatchService} from '../../services/matchService'
+import {TournamentService} from '../../services/tournamentService'
+import {ImageSubmission} from './ImageSubmission'
+import {VotingInterface} from './VotingInterface'
 
 export const MatchScreen: React.FC = () => {
   const {
@@ -21,14 +21,12 @@ export const MatchScreen: React.FC = () => {
     hasUserVoted
   } = useStore()
 
-  const [isLoading, setIsLoading] = useState(false)
   const [matchPhase, setMatchPhase] = useState<'submission' | 'voting' | 'results'>('submission')
 
   useEffect(() => {
     if (currentMatch) {
       loadMatchData()
-      const unsubscribe = MatchService.subscribeToMatchUpdates(currentMatch.id)
-      return unsubscribe
+      return MatchService.subscribeToMatchUpdates(currentMatch.id)
     }
   }, [currentMatch])
 

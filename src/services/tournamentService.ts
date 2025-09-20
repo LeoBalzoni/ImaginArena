@@ -39,6 +39,7 @@ export class TournamentService {
    * Join a tournament
    */
   static async joinTournament(tournamentId: string, userId: string): Promise<void> {
+    console.log('TournamentService: Joining tournament', { tournamentId, userId })
     const { error } = await supabase
       .from('tournament_participants')
       .insert({
@@ -46,7 +47,16 @@ export class TournamentService {
         user_id: userId
       })
     
-    if (error) throw error
+    if (error) {
+      console.error('TournamentService: Join tournament error:', error)
+      throw error
+    }
+    console.log('TournamentService: Successfully joined tournament')
+    
+    // Manually refresh participants to ensure UI updates immediately
+    const { setParticipants } = useStore.getState()
+    const participants = await this.getTournamentParticipants(tournamentId)
+    setParticipants(participants)
   }
 
   /**
@@ -67,8 +77,13 @@ export class TournamentService {
     // Get participants
     const participants = await this.getTournamentParticipants(tournamentId)
     
-    if (participants.length !== 16) {
-      throw new Error('Tournament needs exactly 16 participants to start')
+    if (participants.length < 2) {
+      throw new Error('Tournament needs at least 2 participants to start')
+    }
+    
+    // For tournaments with less than 16 players, we'll pad with byes or adjust bracket size
+    if (participants.length > 16) {
+      throw new Error('Tournament cannot have more than 16 participants')
     }
 
     // Shuffle participants for random matchups
@@ -91,6 +106,22 @@ export class TournamentService {
       .eq('id', tournamentId)
     
     if (updateError) throw updateError
+    
+    // Manually update the tournament status and matches in the store to ensure UI updates
+    const { setCurrentTournament, setMatches } = useStore.getState()
+    const updatedTournament = await supabase
+      .from('tournaments')
+      .select('*')
+      .eq('id', tournamentId)
+      .single()
+    
+    if (updatedTournament.data) {
+      setCurrentTournament(updatedTournament.data)
+    }
+    
+    // Load the newly created matches
+    const matches = await this.getTournamentMatches(tournamentId)
+    setMatches(matches)
   }
 
   /**

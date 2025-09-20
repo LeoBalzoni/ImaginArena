@@ -1,44 +1,40 @@
-import React, { useEffect, useState } from 'react'
-import { Users, Crown, Clock, Play, Loader2 } from 'lucide-react'
-import { useStore } from '../../store/useStore'
-import { TournamentService } from '../../services/tournamentService'
+import React, {useEffect, useRef, useState} from 'react'
+import {Clock, Crown, Loader2, Play, Users} from 'lucide-react'
+import {useStore} from '../../store/useStore'
+import {TournamentService} from '../../services/tournamentService'
 
 export const LobbyScreen: React.FC = () => {
   const {
     user,
     currentTournament,
     participants,
-    isLoading,
     setCurrentTournament,
     setParticipants,
-    setLoading,
     setError,
     isUserInTournament
   } = useStore()
 
   const [isJoining, setIsJoining] = useState(false)
-  const [timeUntilStart, setTimeUntilStart] = useState<string>('')
+  const [isLoadingTournament, setIsLoadingTournament] = useState(false)
+  const isLoadingRef = useRef(false)
 
   useEffect(() => {
-    loadTournament()
-  }, [])
+    if (!isLoadingRef.current) {
+      isLoadingRef.current = true
+      loadTournament().finally(() => {
+        isLoadingRef.current = false
+      })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (currentTournament) {
-      const unsubscribe = TournamentService.subscribeToTournamentUpdates(currentTournament.id)
-      return unsubscribe
+      return TournamentService.subscribeToTournamentUpdates(currentTournament.id)
     }
   }, [currentTournament])
 
-  useEffect(() => {
-    // Auto-start tournament when 16 players join
-    if (participants.length === 16 && currentTournament?.status === 'lobby') {
-      startTournament()
-    }
-  }, [participants.length, currentTournament?.status])
-
   const loadTournament = async () => {
-    setLoading(true)
+    setIsLoadingTournament(true)
     try {
       let tournament = await TournamentService.getCurrentTournament()
       
@@ -51,20 +47,27 @@ export const LobbyScreen: React.FC = () => {
       const tournamentParticipants = await TournamentService.getTournamentParticipants(tournament.id)
       setParticipants(tournamentParticipants)
     } catch (error) {
+      console.error('Failed to load tournament:', error)
       setError(error instanceof Error ? error.message : 'Failed to load tournament')
     } finally {
-      setLoading(false)
+      setIsLoadingTournament(false)
     }
   }
 
   const joinTournament = async () => {
-    if (!user || !currentTournament) return
+    if (!user || !currentTournament) {
+      console.error('Cannot join tournament: missing user or tournament', { user: !!user, currentTournament: !!currentTournament })
+      return
+    }
 
+    console.log('Attempting to join tournament:', { tournamentId: currentTournament.id, userId: user.id })
     setIsJoining(true)
     try {
       await TournamentService.joinTournament(currentTournament.id, user.id)
+      console.log('Successfully joined tournament')
       // Participants will be updated via subscription
     } catch (error) {
+      console.error('Failed to join tournament:', error)
       setError(error instanceof Error ? error.message : 'Failed to join tournament')
     } finally {
       setIsJoining(false)
@@ -123,7 +126,7 @@ export const LobbyScreen: React.FC = () => {
     )
   }
 
-  if (isLoading) {
+  if (isLoadingTournament) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
@@ -146,13 +149,13 @@ export const LobbyScreen: React.FC = () => {
           </h2>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <Clock className="w-4 h-4" />
-            <span>Waiting for players...</span>
+            <span>{participants.length >= 2 ? 'Ready to start!' : 'Need at least 2 players...'}</span>
           </div>
         </div>
 
         {renderParticipantGrid()}
 
-        <div className="text-center">
+        <div className="text-center space-y-4">
           {!isUserInTournament() ? (
             <button
               onClick={joinTournament}
@@ -167,17 +170,30 @@ export const LobbyScreen: React.FC = () => {
               {participants.length >= 16 ? 'Tournament Full' : 'Join Tournament'}
             </button>
           ) : (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2 text-green-800">
-                <Users className="w-5 h-5" />
-                <span className="font-medium">You're in the tournament!</span>
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center justify-center gap-2 text-green-800">
+                  <Users className="w-5 h-5" />
+                  <span className="font-medium">You're in the tournament!</span>
+                </div>
+                <p className="text-sm text-green-600 mt-1">
+                  {participants.length >= 2 
+                    ? 'Tournament ready to start!'
+                    : 'Waiting for more players...'
+                  }
+                </p>
               </div>
-              <p className="text-sm text-green-600 mt-1">
-                {16 - participants.length > 0 
-                  ? `Waiting for ${16 - participants.length} more players...`
-                  : 'Tournament starting soon!'
-                }
-              </p>
+              
+              {/* Manual start button */}
+              {participants.length >= 2 && (
+                <button
+                  onClick={startTournament}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 mx-auto"
+                >
+                  <Crown className="w-4 h-4" />
+                  Start Tournament ({participants.length} players)
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -190,13 +206,13 @@ export const LobbyScreen: React.FC = () => {
             <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
               1
             </div>
-            <p>16 players join the tournament lobby</p>
+            <p>At least 2 players join the tournament lobby</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
               2
             </div>
-            <p>Tournament starts automatically with single-elimination brackets</p>
+            <p>Tournament starts manually with single-elimination brackets</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
