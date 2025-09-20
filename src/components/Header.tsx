@@ -39,7 +39,7 @@ export const Header: React.FC = () => {
             <Crown className="w-8 h-8 text-primary-600" />
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                Prompt Battles
+                ImaginArena 🎨⚔️
               </h1>
               <p className="text-xs text-gray-500">{getStatusText()}</p>
             </div>

@@ -1,4 +1,4 @@
-# Prompt Battles 🎨⚔️
+# ImaginArena 🎨⚔️
 
 A real-time tournament-based image generation competition platform where creativity meets competition! Players join tournaments, receive creative prompts, submit AI-generated images, and vote for their favorites in an exciting single-elimination bracket system.
 
@@ -35,7 +35,6 @@ Before you begin, ensure you have:
 
 ```bash
 git clone <your-repo-url>
-cd prompt-battles
 npm install
 ```
 
