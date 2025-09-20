@@ -5,8 +5,8 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "env": {
-    "VITE_SUPABASE_URL": "@supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key"
+    "VITE_SUPABASE_URL": "$VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY": "$VITE_SUPABASE_ANON_KEY"
   },
   "functions": {
     "app/api/**/*.ts": {
