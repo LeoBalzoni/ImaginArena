@@ -9,6 +9,7 @@ import { MatchScreen } from "./components/Match/MatchScreen";
 import { AdminDashboard } from "./components/Admin/AdminDashboard";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 import { Loader2 } from "lucide-react";
 
 function App() {
@@ -79,7 +80,7 @@ function App() {
   // Main application
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
 
         {/* Error Display */}
@@ -98,13 +99,15 @@ function App() {
         )}
 
         {/* Main Content */}
-        <main>
+        <main className="flex-1">
           {currentView === "lobby" && <LobbyScreen />}
           {currentView === "tournament" && <TournamentBracket />}
           {currentView === "match" && <MatchScreen />}
           {currentView === "results" && <TournamentBracket />}
           {currentView === "admin" && user?.is_admin && <AdminDashboard />}
         </main>
+
+        <Footer />
       </div>
     </ErrorBoundary>
   );
