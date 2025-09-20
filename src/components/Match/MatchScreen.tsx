@@ -376,6 +376,7 @@ export const MatchScreen: React.FC = () => {
             canVote={canUserVote()}
             votes={votes}
             showVoteCounts={user?.is_admin || false}
+            prompt={currentMatch.prompt}
           />
         </div>
       )}

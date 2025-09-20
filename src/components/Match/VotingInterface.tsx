@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Vote, Loader2, Users } from "lucide-react";
+import { Vote, Loader2, Users, ZoomIn } from "lucide-react";
 import { MatchService } from "../../services/matchService";
 import { useStore } from "../../store/useStore";
+import { ImageModal } from "./ImageModal";
 import type { User, Submission, Vote as VoteType } from "../../lib/supabase";
 
 interface VotingInterfaceProps {
@@ -13,6 +14,7 @@ interface VotingInterfaceProps {
   canVote: boolean;
   votes: VoteType[];
   showVoteCounts?: boolean; // Only show vote counts if true (admin or results phase)
+  prompt?: string; // Match prompt for modal display
 }
 
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({
@@ -24,12 +26,17 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
   canVote,
   votes,
   showVoteCounts = false,
+  prompt,
 }) => {
   const { user, setError } = useStore();
   const [isVoting, setIsVoting] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
     null
   );
+  const [modalImage, setModalImage] = useState<{
+    url: string;
+    playerName: string;
+  } | null>(null);
 
   const handleVote = async (submissionId: string) => {
     if (!user || !canVote) return;
@@ -85,24 +92,49 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
           )}
         </div>
 
-        <div
-          className={`relative cursor-pointer rounded-lg overflow-hidden ${
-            canVote ? "hover:ring-2 hover:ring-primary-300" : ""
-          }`}
-          onClick={() => canVote && setSelectedSubmission(player1Submission.id)}
-        >
-          <img
-            src={player1Submission.image_url}
-            alt={`${player1.username}'s submission`}
-            className="w-full h-64 object-cover"
-          />
-          {userVote?.voted_for_submission_id === player1Submission.id && (
-            <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
-              <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                Your Vote
-              </div>
+        <div className="relative">
+          <div
+            className={`relative cursor-pointer rounded-lg overflow-hidden ${
+              canVote
+                ? "hover:ring-2 hover:ring-primary-300"
+                : "hover:ring-2 hover:ring-blue-300"
+            }`}
+            onClick={() => {
+              if (canVote) {
+                setSelectedSubmission(player1Submission.id);
+              }
+            }}
+          >
+            <img
+              src={player1Submission.image_url}
+              alt={`${player1.username}'s submission`}
+              className="w-full h-64 object-cover"
+            />
+
+            {/* Zoom overlay */}
+            <div className="absolute top-2 right-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalImage({
+                    url: player1Submission.image_url,
+                    playerName: player1.username,
+                  });
+                }}
+                className="bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
+                title="View full size"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
             </div>
-          )}
+            {userVote?.voted_for_submission_id === player1Submission.id && (
+              <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
+                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                  Your Vote
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {canVote && (
@@ -145,24 +177,49 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
           )}
         </div>
 
-        <div
-          className={`relative cursor-pointer rounded-lg overflow-hidden ${
-            canVote ? "hover:ring-2 hover:ring-primary-300" : ""
-          }`}
-          onClick={() => canVote && setSelectedSubmission(player2Submission.id)}
-        >
-          <img
-            src={player2Submission.image_url}
-            alt={`${player2.username}'s submission`}
-            className="w-full h-64 object-cover"
-          />
-          {userVote?.voted_for_submission_id === player2Submission.id && (
-            <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
-              <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                Your Vote
-              </div>
+        <div className="relative">
+          <div
+            className={`relative cursor-pointer rounded-lg overflow-hidden ${
+              canVote
+                ? "hover:ring-2 hover:ring-primary-300"
+                : "hover:ring-2 hover:ring-blue-300"
+            }`}
+            onClick={() => {
+              if (canVote) {
+                setSelectedSubmission(player2Submission.id);
+              }
+            }}
+          >
+            <img
+              src={player2Submission.image_url}
+              alt={`${player2.username}'s submission`}
+              className="w-full h-64 object-cover"
+            />
+
+            {/* Zoom overlay */}
+            <div className="absolute top-2 right-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalImage({
+                    url: player2Submission.image_url,
+                    playerName: player2.username,
+                  });
+                }}
+                className="bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
+                title="View full size"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
             </div>
-          )}
+            {userVote?.voted_for_submission_id === player2Submission.id && (
+              <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
+                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                  Your Vote
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {canVote && (
@@ -184,6 +241,17 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
           </button>
         )}
       </div>
+
+      {/* Image Modal */}
+      {modalImage && (
+        <ImageModal
+          isOpen={true}
+          onClose={() => setModalImage(null)}
+          imageUrl={modalImage.url}
+          playerName={modalImage.playerName}
+          prompt={prompt}
+        />
+      )}
     </div>
   );
 };
