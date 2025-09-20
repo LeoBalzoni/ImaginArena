@@ -48,54 +48,11 @@ function App() {
 
   // Show loading spinner during initial load
   if (isLoading) {
-    console.log("App is loading...", { isAuthenticated, user: !!user });
-
-    const handleForceReset = async () => {
-      try {
-        // Clear all state
-        useStore.setState({
-          user: null,
-          isAuthenticated: false,
-          currentTournament: null,
-          tournaments: [],
-          participants: [],
-          currentMatch: null,
-          matches: [],
-          submissions: [],
-          votes: [],
-          isLoading: false,
-          error: null,
-          currentView: "lobby",
-        });
-
-        // Sign out from Supabase
-        await AuthService.signOut();
-
-        // Clear local storage
-        localStorage.clear();
-        sessionStorage.clear();
-
-        // Reload the page
-        window.location.reload();
-      } catch (error) {
-        console.error("Reset error:", error);
-      }
-    };
-
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading...</p>
-          <p className="text-xs text-gray-400 mt-2">
-            Auth: {isAuthenticated ? "Yes" : "No"} | User: {user ? "Yes" : "No"}
-          </p>
-          <button
-            onClick={handleForceReset}
-            className="mt-4 px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
-          >
-            🔄 Force Reset App (Debug)
-          </button>
         </div>
       </div>
     );

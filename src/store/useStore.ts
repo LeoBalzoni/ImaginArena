@@ -42,6 +42,7 @@ interface AppState {
   setCurrentView: (
     view: "lobby" | "tournament" | "match" | "results" | "admin"
   ) => void;
+  setAuthenticated: (isAuthenticated: boolean) => void;
 
   // Computed getters
   isUserInTournament: () => boolean;
@@ -66,7 +67,8 @@ export const useStore = create<AppState>((set, get) => ({
   currentView: "lobby",
 
   // Actions
-  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  setUser: (user) => set({ user }),
+  setAuthenticated: (isAuthenticated: boolean) => set({ isAuthenticated }),
   setCurrentTournament: (tournament) => set({ currentTournament: tournament }),
   setTournaments: (tournaments) => set({ tournaments }),
   setParticipants: (participants) => set({ participants }),

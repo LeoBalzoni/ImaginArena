@@ -1,98 +1,55 @@
 import React, { useState } from "react";
-import { Mail, Github, Chrome, Loader2 } from "lucide-react";
+import { Mail, Eye, EyeOff, Loader2 } from "lucide-react";
 import { AuthService } from "../../services/authService";
 import { useStore } from "../../store/useStore";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const { setError } = useStore();
 
-  const handleMagicLink = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    if (!email || !password || (isSignUp && !username)) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await AuthService.signInWithMagicLink(email);
-      setMagicLinkSent(true);
+      if (isSignUp) {
+        await AuthService.signUpWithPassword(email, password, username);
+      } else {
+        await AuthService.signInWithPassword(email, password);
+      }
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Failed to send magic link"
+        error instanceof Error
+          ? error.message
+          : `Failed to ${isSignUp ? "sign up" : "sign in"}`
       );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGitHub = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await AuthService.signInWithGitHub();
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to sign in with GitHub"
-      );
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogle = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await AuthService.signInWithGoogle();
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to sign in with Google"
-      );
-      setIsLoading(false);
-    }
-  };
-
-  if (magicLinkSent) {
-    return (
-      <div className="card max-w-md mx-auto">
-        <div className="text-center">
-          <Mail className="w-12 h-12 text-primary-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Check your email
-          </h2>
-          <p className="text-gray-600 mb-4">
-            We've sent a magic link to <strong>{email}</strong>
-          </p>
-          <p className="text-sm text-gray-500">
-            Click the link in your email to sign in to Prompt Battles
-          </p>
-          <button
-            onClick={() => setMagicLinkSent(false)}
-            className="mt-4 text-primary-600 hover:text-primary-700 text-sm font-medium"
-          >
-            Try a different email
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="card max-w-md mx-auto">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welcome to Prompt Battles
+          {isSignUp ? "Join" : "Welcome to"} Prompt Battles
         </h1>
         <p className="text-gray-600">
-          Sign in to join the creative competition
+          {isSignUp
+            ? "Create an account to join the creative competition"
+            : "Sign in to join the creative competition"}
         </p>
       </div>
 
-      <form onSubmit={handleMagicLink} className="space-y-4 mb-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="email"
@@ -111,9 +68,77 @@ export const LoginForm: React.FC = () => {
             disabled={isLoading}
           />
         </div>
+
+        {isSignUp && (
+          <div>
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Username
+            </label>
+            <input
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="input-field"
+              placeholder="Choose a username"
+              required={isSignUp}
+              disabled={isLoading}
+              minLength={3}
+              maxLength={20}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Username must be 3-20 characters long
+            </p>
+          </div>
+        )}
+
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-2"
+          >
+            Password
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-field pr-10"
+              placeholder={
+                isSignUp ? "Create a password" : "Enter your password"
+              }
+              required
+              disabled={isLoading}
+              minLength={isSignUp ? 6 : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              disabled={isLoading}
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+          {isSignUp && (
+            <p className="text-xs text-gray-500 mt-1">
+              Password must be at least 6 characters long
+            </p>
+          )}
+        </div>
+
         <button
           type="submit"
-          disabled={isLoading || !email}
+          disabled={isLoading || !email || !password || (isSignUp && !username)}
           className="btn-primary w-full flex items-center justify-center gap-2"
         >
           {isLoading ? (
@@ -121,35 +146,24 @@ export const LoginForm: React.FC = () => {
           ) : (
             <Mail className="w-4 h-4" />
           )}
-          Send Magic Link
+          {isSignUp ? "Create Account" : "Sign In"}
         </button>
       </form>
 
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or continue with</span>
-        </div>
-      </div>
-
-      <div className="space-y-3">
+      <div className="mt-6 text-center">
         <button
-          onClick={handleGitHub}
+          onClick={() => {
+            setIsSignUp(!isSignUp);
+            setPassword("");
+            setUsername("");
+            setError(null);
+          }}
+          className="text-sm text-gray-600 hover:text-gray-800"
           disabled={isLoading}
-          className="btn-secondary w-full flex items-center justify-center gap-2"
         >
-          <Github className="w-4 h-4" />
-          Continue with GitHub
-        </button>
-        <button
-          onClick={handleGoogle}
-          disabled={isLoading}
-          className="btn-secondary w-full flex items-center justify-center gap-2"
-        >
-          <Chrome className="w-4 h-4" />
-          Continue with Google
+          {isSignUp
+            ? "Already have an account? Sign in"
+            : "Don't have an account? Sign up"}
         </button>
       </div>
     </div>
