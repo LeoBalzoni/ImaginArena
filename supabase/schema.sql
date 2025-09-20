@@ -5,6 +5,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE users (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
+  is_admin BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -73,6 +74,13 @@ CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (aut
 CREATE POLICY "Anyone can view tournaments" ON tournaments FOR SELECT USING (true);
 CREATE POLICY "Anyone can create tournaments" ON tournaments FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can update tournaments" ON tournaments FOR UPDATE USING (true);
+CREATE POLICY "Admins can delete tournaments" ON tournaments FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM users 
+    WHERE users.id = auth.uid() 
+    AND users.is_admin = true
+  )
+);
 
 -- Matches policies
 CREATE POLICY "Anyone can view matches" ON matches FOR SELECT USING (true);
@@ -141,5 +149,38 @@ BEGIN
       match_prompt
     );
   END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Migration: Add is_admin column to existing users (if not already added)
+-- This will set all existing users to is_admin = false by default
+DO $$ 
+BEGIN
+    -- Check if the column already exists
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'users' AND column_name = 'is_admin'
+    ) THEN
+        -- Add the column if it doesn't exist
+        ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;
+    END IF;
+    
+    -- Update any existing users that don't have the is_admin field set
+    UPDATE users SET is_admin = FALSE WHERE is_admin IS NULL;
+END $$;
+
+-- Function to make a user admin (for initial setup)
+CREATE OR REPLACE FUNCTION make_user_admin(user_email TEXT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE users 
+    SET is_admin = TRUE 
+    WHERE id IN (
+        SELECT id FROM auth.users WHERE email = user_email
+    );
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User with email % not found', user_email;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;

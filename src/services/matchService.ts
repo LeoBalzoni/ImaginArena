@@ -87,6 +87,12 @@ export class MatchService {
       .single()
 
     if (error) throw error
+    
+    // Manually refresh votes to ensure UI updates immediately
+    const { setVotes } = useStore.getState()
+    const votes = await this.getMatchVotes(matchId)
+    setVotes(votes)
+    
     return data
   }
 

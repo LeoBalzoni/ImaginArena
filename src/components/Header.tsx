@@ -1,5 +1,5 @@
 import React from 'react'
-import { Crown, LogOut, User, Trophy, Users } from 'lucide-react'
+import { Crown, LogOut, User, Trophy, Users, Settings } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { AuthService } from '../services/authService'
 
@@ -69,6 +69,21 @@ export const Header: React.FC = () => {
                 Tournament
               </button>
             )}
+
+            {/* Admin Navigation - Only show for admin users */}
+            {user?.is_admin && (
+              <button
+                onClick={() => setCurrentView('admin')}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  currentView === 'admin'
+                    ? 'bg-red-100 text-red-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                <Settings className="w-4 h-4 inline mr-1" />
+                Admin
+              </button>
+            )}
           </nav>
 
           {/* User Menu */}
@@ -115,6 +130,21 @@ export const Header: React.FC = () => {
             >
               <Trophy className="w-4 h-4 inline mr-1" />
               Tournament
+            </button>
+          )}
+
+          {/* Admin Navigation - Mobile */}
+          {user?.is_admin && (
+            <button
+              onClick={() => setCurrentView('admin')}
+              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                currentView === 'admin'
+                  ? 'bg-red-100 text-red-700'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Settings className="w-4 h-4 inline mr-1" />
+              Admin
             </button>
           )}
         </div>

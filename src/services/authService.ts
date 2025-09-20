@@ -88,51 +88,81 @@ export class AuthService {
    * Get user profile
    */
   static async getUserProfile(userId: string) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single()
+    console.log('getUserProfile: Starting query for userId:', userId)
     
-    if (error) throw error
-    return data
+    try {
+      // Add timeout to prevent hanging
+      const queryPromise = supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database query timeout after 5 seconds')), 5000)
+      )
+      
+      console.log('getUserProfile: Executing query with timeout...')
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
+      
+      console.log('getUserProfile: Query completed. Data:', data, 'Error:', error)
+      
+      if (error) {
+        console.error('getUserProfile: Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        throw error
+      }
+      
+      console.log('getUserProfile: Returning data:', data)
+      return data
+    } catch (err) {
+      console.error('getUserProfile: Caught exception:', err)
+      throw err
+    }
   }
 
   /**
    * Initialize auth listener
    */
   static initAuthListener() {
+    let isInitialLoad = true
+
     supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state change:', event, session?.user?.id)
-      const { setUser, setLoading, setError } = useStore.getState()
-      
-      setLoading(true)
+      const { setUser, setLoading, setError, user: currentUser } = useStore.getState()
+
+      // Only show loading on initial load or significant auth events
+      const shouldShowLoading = isInitialLoad || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED'
+
+      if (shouldShowLoading) {
+        setLoading(true)
+      }
       setError(null)
-      
+
       try {
         if (session?.user) {
           console.log('User authenticated, checking profile...')
+
+          // If we already have a user profile and this is just a token refresh or tab focus,
+          // don't refetch unless it's a new user
+          if (currentUser && currentUser.id === session.user.id && !isInitialLoad && event !== 'SIGNED_IN') {
+            console.log('User profile already exists, skipping refetch')
+            return
+          }
+          
           // Try to get existing profile
           try {
-            console.log('Calling getUserProfile for user:', session.user.id)
-            // Add timeout to prevent hanging
-            const profilePromise = AuthService.getUserProfile(session.user.id)
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile lookup timeout')), 5000)
-            )
-            const profile = await Promise.race([profilePromise, timeoutPromise])
+            console.log('Calling getUserProfile for user:', session.user.id, '(', session.user.email, ')')
+            const profile = await AuthService.getUserProfile(session.user.id)
             console.log('Profile found:', profile)
             setUser(profile)
             console.log('User state updated, isAuthenticated should be true')
           } catch (error) {
-            console.log('Profile not found, user needs to create one:', error)
-            console.log('Error details:', error)
-            // Profile doesn't exist, but user is authenticated
-            // Set user to null but keep them authenticated so they can create a profile
-            setUser(null)
-            // Manually set authenticated state since user is null
-            useStore.setState({ isAuthenticated: true })
-            console.log('Set isAuthenticated to true manually')
+            console.error('Profile not found or error occurred:', error)
           }
         } else {
           console.log('No session, user not authenticated')
@@ -141,9 +171,14 @@ export class AuthService {
       } catch (error) {
         console.error('Auth state change error:', error)
         setError(`Authentication error: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        setUser(null)
+        if (!currentUser) {
+          setUser(null)
+        }
       } finally {
-        setLoading(false)
+        if (shouldShowLoading) {
+          setLoading(false)
+        }
+        isInitialLoad = false
       }
     })
   }

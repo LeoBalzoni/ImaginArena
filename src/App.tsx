@@ -6,6 +6,7 @@ import { UsernameSetup } from './components/Auth/UsernameSetup'
 import { LobbyScreen } from './components/Lobby/LobbyScreen'
 import { TournamentBracket } from './components/Tournament/TournamentBracket'
 import { MatchScreen } from './components/Match/MatchScreen'
+import { AdminDashboard } from './components/Admin/AdminDashboard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Header } from './components/Header'
 import { Loader2 } from 'lucide-react'
@@ -146,6 +147,7 @@ function App() {
           {currentView === 'tournament' && <TournamentBracket />}
           {currentView === 'match' && <MatchScreen />}
           {currentView === 'results' && <TournamentBracket />}
+          {currentView === 'admin' && user?.is_admin && <AdminDashboard />}
         </main>
       </div>
     </ErrorBoundary>

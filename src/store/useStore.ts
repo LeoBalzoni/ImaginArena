@@ -20,7 +20,7 @@ interface AppState {
   // UI state
   isLoading: boolean
   error: string | null
-  currentView: 'lobby' | 'tournament' | 'match' | 'results'
+  currentView: 'lobby' | 'tournament' | 'match' | 'results' | 'admin'
   
   // Actions
   setUser: (user: User | null) => void
@@ -33,7 +33,7 @@ interface AppState {
   setVotes: (votes: Vote[]) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
-  setCurrentView: (view: 'lobby' | 'tournament' | 'match' | 'results') => void
+  setCurrentView: (view: 'lobby' | 'tournament' | 'match' | 'results' | 'admin') => void
   
   // Computed getters
   isUserInTournament: () => boolean

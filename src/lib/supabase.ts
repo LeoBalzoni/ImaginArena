@@ -13,6 +13,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export interface User {
   id: string
   username: string
+  is_admin: boolean
   created_at: string
 }
 
