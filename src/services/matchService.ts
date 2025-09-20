@@ -59,6 +59,23 @@ export class MatchService {
     const submissions = await this.getMatchSubmissions(matchId);
     setSubmissions(submissions);
 
+    // console.log("Image submitted successfully:", {
+    //   submissionId: data.id,
+    //   matchId,
+    //   userId,
+    //   totalSubmissions: submissions.length,
+    // });
+
+    // Force refresh after a delay as backup
+    setTimeout(async () => {
+      try {
+        const updatedSubmissions = await this.getMatchSubmissions(matchId);
+        setSubmissions(updatedSubmissions);
+      } catch (error) {
+        console.error("Error force refreshing submissions:", error);
+      }
+    }, 1000);
+
     return data;
   }
 
@@ -100,6 +117,24 @@ export class MatchService {
     const { setVotes } = useStore.getState();
     const votes = await this.getMatchVotes(matchId);
     setVotes(votes);
+
+    // console.log("Vote submitted successfully:", {
+    //   voteId: data.id,
+    //   matchId,
+    //   voterId,
+    //   submissionId,
+    //   totalVotes: votes.length,
+    // });
+
+    // Force refresh after a delay as backup
+    setTimeout(async () => {
+      try {
+        const updatedVotes = await this.getMatchVotes(matchId);
+        setVotes(updatedVotes);
+      } catch (error) {
+        console.error("Error force refreshing votes:", error);
+      }
+    }, 1000);
 
     return data;
   }
@@ -203,10 +238,56 @@ export class MatchService {
   }
 
   /**
-   * Subscribe to match updates
+   * Subscribe to match updates with fallback polling
    */
   static subscribeToMatchUpdates(matchId: string) {
     const { setCurrentMatch, setSubmissions, setVotes } = useStore.getState();
+
+    console.log("Setting up real-time subscription for match:", matchId);
+
+    let isSubscribed = true;
+    let submissionsInterval: NodeJS.Timeout;
+    let votesInterval: NodeJS.Timeout;
+
+    // Fallback polling for submissions
+    const startSubmissionsPolling = () => {
+      submissionsInterval = setInterval(async () => {
+        if (!isSubscribed) return;
+
+        try {
+          const submissions = await MatchService.getMatchSubmissions(matchId);
+          const currentSubmissions = useStore.getState().submissions;
+
+          // Only update if submissions have changed
+          if (
+            JSON.stringify(submissions) !== JSON.stringify(currentSubmissions)
+          ) {
+            setSubmissions(submissions);
+          }
+        } catch (error) {
+          console.error("Error polling submissions:", error);
+        }
+      }, 2000); // Poll every 2 seconds
+    };
+
+    // Fallback polling for votes
+    const startVotesPolling = () => {
+      votesInterval = setInterval(async () => {
+        if (!isSubscribed) return;
+
+        try {
+          const votes = await MatchService.getMatchVotes(matchId);
+          const currentVotes = useStore.getState().votes;
+
+          // Only update if votes have changed
+          if (JSON.stringify(votes) !== JSON.stringify(currentVotes)) {
+            setVotes(votes);
+          }
+        } catch (error) {
+          console.error("Error polling votes:", error);
+        }
+      }, 2000); // Poll every 2 seconds
+    };
 
     const matchSubscription = supabase
       .channel(`match-${matchId}`)
@@ -232,9 +313,18 @@ export class MatchService {
           table: "submissions",
           filter: `match_id=eq.${matchId}`,
         },
-        async () => {
-          const submissions = await MatchService.getMatchSubmissions(matchId);
-          setSubmissions(submissions);
+        async (payload) => {
+          try {
+            const submissions = await MatchService.getMatchSubmissions(matchId);
+            setSubmissions(submissions);
+          } catch (error) {
+            console.error(
+              "Error fetching submissions:",
+              error,
+              "Payload: ",
+              payload
+            );
+          }
         }
       )
       .on(
@@ -245,14 +335,39 @@ export class MatchService {
           table: "votes",
           filter: `match_id=eq.${matchId}`,
         },
-        async () => {
-          const votes = await MatchService.getMatchVotes(matchId);
-          setVotes(votes);
+        async (payload) => {
+          try {
+            const votes = await MatchService.getMatchVotes(matchId);
+            setVotes(votes);
+          } catch (error) {
+            console.error("Error fetching votes:", error, "Payload: ", payload);
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Match subscription status:", status);
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          startSubmissionsPolling();
+          startVotesPolling();
+        }
+      });
+
+    // Start polling as backup after 5 seconds if no real-time updates
+    setTimeout(() => {
+      if (isSubscribed) {
+        startSubmissionsPolling();
+        startVotesPolling();
+      }
+    }, 5000);
 
     return () => {
+      isSubscribed = false;
+      if (submissionsInterval) {
+        clearInterval(submissionsInterval);
+      }
+      if (votesInterval) {
+        clearInterval(votesInterval);
+      }
       supabase.removeChannel(matchSubscription);
     };
   }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Clock, Crown, Loader2, Play, Users } from "lucide-react";
+import { Clock, Crown, Loader2, Play, Users, RefreshCw } from "lucide-react";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
 
@@ -16,6 +16,7 @@ export const LobbyScreen: React.FC = () => {
 
   const [isJoining, setIsJoining] = useState(false);
   const [isLoadingTournament, setIsLoadingTournament] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
@@ -29,9 +30,13 @@ export const LobbyScreen: React.FC = () => {
 
   useEffect(() => {
     if (currentTournament) {
-      return TournamentService.subscribeToTournamentUpdates(
+      const unsubscribe = TournamentService.subscribeToTournamentUpdates(
         currentTournament.id
       );
+
+      return () => {
+        unsubscribe();
+      };
     }
   }, [currentTournament]);
 
@@ -71,12 +76,25 @@ export const LobbyScreen: React.FC = () => {
     console.log("Attempting to join tournament:", {
       tournamentId: currentTournament.id,
       userId: user.id,
+      currentParticipants: participants.length,
     });
     setIsJoining(true);
     try {
       await TournamentService.joinTournament(currentTournament.id, user.id);
       console.log("Successfully joined tournament");
-      // Participants will be updated via subscription
+
+      // Force refresh participants as backup
+      setTimeout(async () => {
+        try {
+          const updatedParticipants =
+            await TournamentService.getTournamentParticipants(
+              currentTournament.id
+            );
+          setParticipants(updatedParticipants);
+        } catch (error) {
+          console.error("Error force refreshing participants:", error);
+        }
+      }, 1000);
     } catch (error) {
       console.error("Failed to join tournament:", error);
       setError(
@@ -96,6 +114,26 @@ export const LobbyScreen: React.FC = () => {
       setError(
         error instanceof Error ? error.message : "Failed to start tournament"
       );
+    }
+  };
+
+  const refreshParticipants = async () => {
+    if (!currentTournament) return;
+
+    setIsRefreshing(true);
+    try {
+      const updatedParticipants =
+        await TournamentService.getTournamentParticipants(currentTournament.id);
+      setParticipants(updatedParticipants);
+    } catch (error) {
+      console.error("Error refreshing participants:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to refresh participants"
+      );
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -161,13 +199,26 @@ export const LobbyScreen: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">
             Players ({participants.length}/16)
           </h2>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Clock className="w-4 h-4" />
-            <span>
-              {participants.length >= 2
-                ? "Ready to start!"
-                : "Need at least 2 players..."}
-            </span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={refreshParticipants}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+              title="Refresh participant list"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </button>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Clock className="w-4 h-4" />
+              <span>
+                {participants.length >= 2
+                  ? "Ready to start!"
+                  : "Need at least 2 players..."}
+              </span>
+            </div>
           </div>
         </div>
 

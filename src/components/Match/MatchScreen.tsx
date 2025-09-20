@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { CheckCircle, Clock, Trophy, Upload, Users, Vote } from "lucide-react";
+import {
+  CheckCircle,
+  Clock,
+  Trophy,
+  Upload,
+  Users,
+  Vote,
+  RefreshCw,
+} from "lucide-react";
 import { useStore } from "../../store/useStore";
 import { MatchService } from "../../services/matchService";
 import { TournamentService } from "../../services/tournamentService";
@@ -24,6 +32,7 @@ export const MatchScreen: React.FC = () => {
   const [matchPhase, setMatchPhase] = useState<
     "submission" | "voting" | "results"
   >("submission");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (currentMatch) {
@@ -125,6 +134,25 @@ export const MatchScreen: React.FC = () => {
       .length;
   };
 
+  const refreshMatchData = async () => {
+    if (!currentMatch) return;
+
+    setIsRefreshing(true);
+    try {
+      const [matchSubmissions, matchVotes] = await Promise.all([
+        MatchService.getMatchSubmissions(currentMatch.id),
+        MatchService.getMatchVotes(currentMatch.id),
+      ]);
+
+      setSubmissions(matchSubmissions);
+      setVotes(matchVotes);
+    } catch (error) {
+      console.error("Error refreshing match data:", error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (!currentMatch) {
     return (
       <div className="text-center py-12">
@@ -159,6 +187,21 @@ export const MatchScreen: React.FC = () => {
             <Users className="w-5 h-5 text-gray-600" />
             <span className="font-medium">{player2?.username}</span>
           </div>
+        </div>
+
+        {/* Refresh button */}
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={refreshMatchData}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh match data"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
         </div>
 
         {matchPhase === "results" && winner && (

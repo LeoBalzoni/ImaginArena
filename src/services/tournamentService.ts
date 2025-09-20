@@ -224,11 +224,36 @@ export class TournamentService {
   }
 
   /**
-   * Subscribe to tournament updates
+   * Subscribe to tournament updates with fallback polling
    */
   static subscribeToTournamentUpdates(tournamentId: string) {
     const { setCurrentTournament, setParticipants, setMatches } =
       useStore.getState();
+
+    let isSubscribed = true;
+    let pollInterval: NodeJS.Timeout;
+
+    // Fallback polling mechanism
+    const startPolling = () => {
+      pollInterval = setInterval(async () => {
+        if (!isSubscribed) return;
+
+        try {
+          const participants =
+            await TournamentService.getTournamentParticipants(tournamentId);
+          const currentParticipants = useStore.getState().participants;
+
+          // Only update if participants have changed
+          if (
+            JSON.stringify(participants) !== JSON.stringify(currentParticipants)
+          ) {
+            setParticipants(participants);
+          }
+        } catch (error) {
+          console.error("Error polling participants:", error);
+        }
+      }, 2000); // Poll every 2 seconds
+    };
 
     // Subscribe to tournament changes
     const tournamentSubscription = supabase
@@ -243,7 +268,23 @@ export class TournamentService {
         },
         async (payload) => {
           if (payload.new) {
-            setCurrentTournament(payload.new as Tournament);
+            const newTournament = payload.new as Tournament;
+            setCurrentTournament(newTournament);
+
+            // If tournament started, also load the matches
+            if (newTournament.status === "in_progress") {
+              try {
+                const matches = await TournamentService.getTournamentMatches(
+                  tournamentId
+                );
+                setMatches(matches);
+              } catch (error) {
+                console.error(
+                  "Error loading matches after tournament start:",
+                  error
+                );
+              }
+            }
           }
         }
       )
@@ -255,10 +296,19 @@ export class TournamentService {
           table: "tournament_participants",
           filter: `tournament_id=eq.${tournamentId}`,
         },
-        async () => {
-          const participants =
-            await TournamentService.getTournamentParticipants(tournamentId);
-          setParticipants(participants);
+        async (payload) => {
+          try {
+            const participants =
+              await TournamentService.getTournamentParticipants(tournamentId);
+            setParticipants(participants);
+          } catch (error) {
+            console.error(
+              "Error fetching participants:",
+              error,
+              "Payload: ",
+              payload
+            );
+          }
         }
       )
       .on(
@@ -269,16 +319,73 @@ export class TournamentService {
           table: "matches",
           filter: `tournament_id=eq.${tournamentId}`,
         },
-        async () => {
-          const matches = await TournamentService.getTournamentMatches(
-            tournamentId
-          );
-          setMatches(matches);
+        async (payload) => {
+          try {
+            const matches = await TournamentService.getTournamentMatches(
+              tournamentId
+            );
+            setMatches(matches);
+          } catch (error) {
+            console.error(
+              "Error fetching matches:",
+              error,
+              "Payload: ",
+              payload
+            );
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          startPolling();
+        }
+      });
+
+    // Start polling as backup (will be cleared if real-time works)
+    setTimeout(() => {
+      if (isSubscribed) {
+        startPolling();
+      }
+    }, 5000); // Start polling after 5 seconds if no real-time updates
+
+    // Also poll tournament status specifically to ensure view changes work
+    const tournamentStatusInterval = setInterval(async () => {
+      if (!isSubscribed) return;
+
+      try {
+        const currentTournament =
+          await TournamentService.getCurrentTournament();
+        const storeCurrentTournament = useStore.getState().currentTournament;
+
+        // Only update if tournament status has changed
+        if (
+          currentTournament &&
+          storeCurrentTournament &&
+          currentTournament.status !== storeCurrentTournament.status
+        ) {
+          setCurrentTournament(currentTournament);
+
+          // If tournament started, load matches
+          if (currentTournament.status === "in_progress") {
+            const matches = await TournamentService.getTournamentMatches(
+              currentTournament.id
+            );
+            setMatches(matches);
+          }
+        }
+      } catch (error) {
+        console.error("Error polling tournament status:", error);
+      }
+    }, 3000); // Poll tournament status every 3 seconds
 
     return () => {
+      isSubscribed = false;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+      if (tournamentStatusInterval) {
+        clearInterval(tournamentStatusInterval);
+      }
       supabase.removeChannel(tournamentSubscription);
     };
   }
