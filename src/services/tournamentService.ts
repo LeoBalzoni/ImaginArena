@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import type { Tournament, Match, User } from "../lib/supabase";
 import { useStore } from "../store/useStore";
+import { getRandomPrompt } from "../data/prompts";
 
 export class TournamentService {
   /**
@@ -196,21 +197,9 @@ export class TournamentService {
     const winners = latestRoundMatches.map((m) => m.winner_id).filter(Boolean);
     const nextRound = latestRound + 1;
 
-    const prompts = [
-      "A magical forest at sunset with glowing mushrooms",
-      "A cyberpunk city street in the rain at night",
-      "A cozy cabin in the mountains during winter",
-      "An underwater palace with colorful coral gardens",
-      "A steampunk airship floating above the clouds",
-      "A desert oasis with ancient ruins in the background",
-      "A space station orbiting a distant planet",
-      "A medieval castle on a cliff overlooking the ocean",
-    ];
-
     for (let i = 0; i < winners.length; i += 2) {
       if (i + 1 < winners.length) {
-        const randomPrompt =
-          prompts[Math.floor(Math.random() * prompts.length)];
+        const randomPrompt = getRandomPrompt();
 
         await supabase.from("matches").insert({
           tournament_id: tournamentId,

@@ -8,6 +8,7 @@ import {
   Vote,
   RefreshCw,
   Eye,
+  Shuffle,
 } from "lucide-react";
 import { useStore } from "../../store/useStore";
 import { MatchService } from "../../services/matchService";
@@ -37,6 +38,7 @@ export const MatchScreen: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showCoinToss, setShowCoinToss] = useState(false);
   const [isEndingVoting, setIsEndingVoting] = useState(false);
+  const [isChangingPrompt, setIsChangingPrompt] = useState(false);
 
   useEffect(() => {
     if (currentMatch) {
@@ -204,6 +206,20 @@ export const MatchScreen: React.FC = () => {
     }
   };
 
+  const handleChangePrompt = async () => {
+    if (!currentMatch || !user?.is_admin) return;
+
+    setIsChangingPrompt(true);
+    try {
+      await MatchService.updateMatchPrompt(currentMatch.id);
+      // The match state will be updated automatically via the subscription system
+    } catch (error) {
+      console.error("Failed to change prompt:", error);
+    } finally {
+      setIsChangingPrompt(false);
+    }
+  };
+
   if (!currentMatch) {
     return (
       <div className="text-center py-12">
@@ -267,10 +283,34 @@ export const MatchScreen: React.FC = () => {
 
       {/* Prompt */}
       <div className="card mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Creative Prompt
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Creative Prompt
+          </h3>
+          {/* Admin Change Prompt Button - Only show during submission phase */}
+          {user?.is_admin && matchPhase === "submission" && (
+            <button
+              onClick={handleChangePrompt}
+              disabled={isChangingPrompt}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors disabled:opacity-50"
+              title="Generate a new random prompt"
+            >
+              {isChangingPrompt ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Shuffle className="w-4 h-4" />
+              )}
+              {isChangingPrompt ? "Changing..." : "New Prompt"}
+            </button>
+          )}
+        </div>
         <p className="text-gray-700 text-lg italic">"{currentMatch.prompt}"</p>
+        {user?.is_admin && matchPhase === "submission" && (
+          <p className="text-xs text-gray-500 mt-2">
+            Admin: Click "New Prompt" to generate a different creative prompt
+            for this match
+          </p>
+        )}
       </div>
 
       {/* Match Content */}

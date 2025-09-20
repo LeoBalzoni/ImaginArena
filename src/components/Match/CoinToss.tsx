@@ -38,7 +38,7 @@ export const CoinToss: React.FC<CoinTossProps> = ({
       // Call onComplete after showing result for 2 seconds
       setTimeout(() => {
         onComplete(winnerId);
-      }, 2000);
+      }, 5000);
     }, 3000);
   }, [player1Id, player2Id, player1Name, player2Name, onComplete]);
 
@@ -67,7 +67,7 @@ export const CoinToss: React.FC<CoinTossProps> = ({
                 : "none",
             }}
           >
-            {isFlipping ? "🪙" : result === "heads" ? "H" : "T"}
+            {isFlipping ? "🪙" : result === "heads" ? "HEADS" : "TAILS"}
           </div>
         </div>
 

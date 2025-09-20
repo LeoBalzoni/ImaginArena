@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import type { Match, Submission, Vote } from "../lib/supabase";
 import { useStore } from "../store/useStore";
+import { getRandomPromptExcluding } from "../data/prompts";
 
 export class MatchService {
   /**
@@ -219,6 +220,37 @@ export class MatchService {
     }
 
     return winnerId;
+  }
+
+  /**
+   * Update match prompt (admin only)
+   */
+  static async updateMatchPrompt(matchId: string): Promise<string> {
+    // Get current match to avoid selecting the same prompt
+    const currentMatch = await this.getMatch(matchId);
+    if (!currentMatch) {
+      throw new Error("Match not found");
+    }
+
+    // Get a new random prompt that's different from the current one
+    const newPrompt = getRandomPromptExcluding(currentMatch.prompt);
+
+    // Update the match with the new prompt
+    const { error } = await supabase
+      .from("matches")
+      .update({ prompt: newPrompt })
+      .eq("id", matchId);
+
+    if (error) throw error;
+
+    // Force update the current match state to ensure immediate UI updates
+    const { setCurrentMatch } = useStore.getState();
+    const updatedMatch = await this.getMatch(matchId);
+    if (updatedMatch) {
+      setCurrentMatch(updatedMatch);
+    }
+
+    return newPrompt;
   }
 
   /**
