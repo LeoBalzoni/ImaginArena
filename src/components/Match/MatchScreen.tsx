@@ -7,12 +7,14 @@ import {
   Users,
   Vote,
   RefreshCw,
+  Eye,
 } from "lucide-react";
 import { useStore } from "../../store/useStore";
 import { MatchService } from "../../services/matchService";
 import { TournamentService } from "../../services/tournamentService";
 import { ImageSubmission } from "./ImageSubmission";
 import { VotingInterface } from "./VotingInterface";
+import { CoinToss } from "./CoinToss";
 
 export const MatchScreen: React.FC = () => {
   const {
@@ -30,22 +32,44 @@ export const MatchScreen: React.FC = () => {
   } = useStore();
 
   const [matchPhase, setMatchPhase] = useState<
-    "submission" | "voting" | "results"
+    "submission" | "voting" | "results" | "revealing"
   >("submission");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCoinToss, setShowCoinToss] = useState(false);
+  const [isEndingVoting, setIsEndingVoting] = useState(false);
 
   useEffect(() => {
     if (currentMatch) {
       loadMatchData();
       return MatchService.subscribeToMatchUpdates(currentMatch.id);
     }
-  }, [currentMatch]);
+  }, [currentMatch?.id]); // Only depend on match ID to avoid unnecessary re-subscriptions
 
   useEffect(() => {
-    if (currentMatch && submissions.length > 0) {
+    if (currentMatch) {
       determineMatchPhase();
     }
   }, [currentMatch, submissions, votes, participants]);
+
+  // Additional effect to specifically handle winner updates
+  useEffect(() => {
+    if (currentMatch?.winner_id && matchPhase !== "results") {
+      setMatchPhase("results");
+    }
+  }, [currentMatch?.winner_id, matchPhase]);
+
+  // Force periodic phase check as additional safeguard
+  useEffect(() => {
+    if (!currentMatch) return;
+
+    const phaseCheckInterval = setInterval(() => {
+      if (currentMatch.winner_id && matchPhase !== "results") {
+        setMatchPhase("results");
+      }
+    }, 2000); // Check every 2 seconds
+
+    return () => clearInterval(phaseCheckInterval);
+  }, [currentMatch?.id, currentMatch?.winner_id, matchPhase]);
 
   const loadMatchData = async () => {
     if (!currentMatch) return;
@@ -82,26 +106,8 @@ export const MatchScreen: React.FC = () => {
       return;
     }
 
-    // Check if voting is complete
-    const isVotingComplete = await MatchService.isVotingComplete(
-      currentMatch.id,
-      participants.length
-    );
-
-    if (isVotingComplete) {
-      // Calculate winner and advance tournament
-      try {
-        await MatchService.calculateMatchWinner(currentMatch.id);
-        if (currentTournament) {
-          await TournamentService.createNextRoundMatches(currentTournament.id);
-        }
-        setMatchPhase("results");
-      } catch (error) {
-        console.error("Failed to calculate winner:", error);
-      }
-    } else {
-      setMatchPhase("voting");
-    }
+    // If ready for voting, stay in voting phase until admin ends it
+    setMatchPhase("voting");
   };
 
   const isUserParticipant = () => {
@@ -150,6 +156,51 @@ export const MatchScreen: React.FC = () => {
       console.error("Error refreshing match data:", error);
     } finally {
       setIsRefreshing(false);
+    }
+  };
+
+  const endVoting = async () => {
+    if (!currentMatch || !user?.is_admin) return;
+
+    setIsEndingVoting(true);
+    try {
+      const result = await MatchService.endVoting(currentMatch.id);
+
+      if (result.isTie) {
+        // Show coin toss animation
+        setShowCoinToss(true);
+      } else {
+        // No tie - proceed to results
+        setMatchPhase("results");
+        if (currentTournament) {
+          await TournamentService.createNextRoundMatches(currentTournament.id);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to end voting:", error);
+    } finally {
+      setIsEndingVoting(false);
+    }
+  };
+
+  const handleCoinTossComplete = async (winnerId: string) => {
+    if (!currentMatch) return;
+
+    try {
+      // Set the winner from coin toss
+      await MatchService.calculateMatchWinner(currentMatch.id, winnerId);
+      setShowCoinToss(false);
+      setMatchPhase("results");
+
+      // Create next round matches
+      if (currentTournament) {
+        await TournamentService.createNextRoundMatches(currentTournament.id);
+      }
+
+      // Refresh match data to show the winner
+      await refreshMatchData();
+    } catch (error) {
+      console.error("Failed to set coin toss winner:", error);
     }
   };
 
@@ -291,6 +342,29 @@ export const MatchScreen: React.FC = () => {
                 ? "Other players are voting on your match"
                 : "You have already voted"}
             </p>
+
+            {/* Admin End Voting Button */}
+            {user?.is_admin && (
+              <div className="mt-4">
+                <button
+                  onClick={endVoting}
+                  disabled={isEndingVoting}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 mx-auto"
+                >
+                  {isEndingVoting ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                  {isEndingVoting
+                    ? "Ending Voting..."
+                    : "End Voting & Reveal Results"}
+                </button>
+                <p className="text-xs text-gray-500 mt-1">
+                  Admin only - Click to reveal votes and determine winner
+                </p>
+              </div>
+            )}
           </div>
 
           <VotingInterface
@@ -301,6 +375,7 @@ export const MatchScreen: React.FC = () => {
             player2Submission={player2Submission!}
             canVote={canUserVote()}
             votes={votes}
+            showVoteCounts={user?.is_admin || false}
           />
         </div>
       )}
@@ -374,6 +449,17 @@ export const MatchScreen: React.FC = () => {
           Back to Tournament Bracket
         </button>
       </div>
+
+      {/* Coin Toss Modal */}
+      {showCoinToss && player1 && player2 && (
+        <CoinToss
+          player1Name={player1.username}
+          player2Name={player2.username}
+          player1Id={player1.id}
+          player2Id={player2.id}
+          onComplete={handleCoinTossComplete}
+        />
+      )}
     </div>
   );
 };

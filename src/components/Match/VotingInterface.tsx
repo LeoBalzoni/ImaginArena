@@ -12,6 +12,7 @@ interface VotingInterfaceProps {
   player2Submission: Submission;
   canVote: boolean;
   votes: VoteType[];
+  showVoteCounts?: boolean; // Only show vote counts if true (admin or results phase)
 }
 
 export const VotingInterface: React.FC<VotingInterfaceProps> = ({
@@ -22,6 +23,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
   player2Submission,
   canVote,
   votes,
+  showVoteCounts = false,
 }) => {
   const { user, setError } = useStore();
   const [isVoting, setIsVoting] = useState(false);
@@ -75,10 +77,12 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
       >
         <div className="flex items-center justify-between mb-4">
           <h4 className="font-semibold text-gray-900">{player1.username}</h4>
-          <div className="flex items-center gap-1 text-sm text-gray-600">
-            <Users className="w-4 h-4" />
-            <span>{getVoteCount(player1Submission.id)} votes</span>
-          </div>
+          {showVoteCounts && (
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <Users className="w-4 h-4" />
+              <span>{getVoteCount(player1Submission.id)} votes</span>
+            </div>
+          )}
         </div>
 
         <div
@@ -133,10 +137,12 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
       >
         <div className="flex items-center justify-between mb-4">
           <h4 className="font-semibold text-gray-900">{player2.username}</h4>
-          <div className="flex items-center gap-1 text-sm text-gray-600">
-            <Users className="w-4 h-4" />
-            <span>{getVoteCount(player2Submission.id)} votes</span>
-          </div>
+          {showVoteCounts && (
+            <div className="flex items-center gap-1 text-sm text-gray-600">
+              <Users className="w-4 h-4" />
+              <span>{getVoteCount(player2Submission.id)} votes</span>
+            </div>
+          )}
         </div>
 
         <div

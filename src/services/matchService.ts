@@ -155,7 +155,10 @@ export class MatchService {
   /**
    * Calculate match winner and update match
    */
-  static async calculateMatchWinner(matchId: string): Promise<string | null> {
+  static async calculateMatchWinner(
+    matchId: string,
+    forcedWinnerId?: string
+  ): Promise<string | null> {
     const submissions = await this.getMatchSubmissions(matchId);
     const votes = await this.getMatchVotes(matchId);
 
@@ -163,6 +166,72 @@ export class MatchService {
       throw new Error(
         "Match must have exactly 2 submissions to calculate winner"
       );
+    }
+
+    let winnerId: string;
+
+    if (forcedWinnerId) {
+      // Admin forced winner (from coin toss)
+      winnerId = forcedWinnerId;
+    } else {
+      // Count votes for each submission
+      const voteCount = submissions.reduce((acc, submission) => {
+        acc[submission.id] = votes.filter(
+          (v) => v.voted_for_submission_id === submission.id
+        ).length;
+        return acc;
+      }, {} as Record<string, number>);
+
+      // Find winner (submission with most votes)
+      const sortedSubmissions = Object.entries(voteCount).sort(
+        (a, b) => b[1] - a[1]
+      );
+      const topVotes = sortedSubmissions[0][1];
+      const secondVotes = sortedSubmissions[1][1];
+
+      // Check for tie
+      if (topVotes === secondVotes) {
+        return null; // Return null to indicate tie - UI will handle coin toss
+      }
+
+      const winningSubmissionId = sortedSubmissions[0][0];
+      const winningSubmission = submissions.find(
+        (s) => s.id === winningSubmissionId
+      );
+      if (!winningSubmission) return null;
+
+      winnerId = winningSubmission.user_id;
+    }
+
+    // Update match with winner
+    const { error } = await supabase
+      .from("matches")
+      .update({ winner_id: winnerId })
+      .eq("id", matchId);
+
+    if (error) throw error;
+
+    // Force update the current match state to ensure immediate UI updates
+    const { setCurrentMatch } = useStore.getState();
+    const updatedMatch = await this.getMatch(matchId);
+    if (updatedMatch) {
+      setCurrentMatch(updatedMatch);
+    }
+
+    return winnerId;
+  }
+
+  /**
+   * End voting phase (admin only) - reveals results
+   */
+  static async endVoting(
+    matchId: string
+  ): Promise<{ winner: string | null; isTie: boolean }> {
+    const submissions = await this.getMatchSubmissions(matchId);
+    const votes = await this.getMatchVotes(matchId);
+
+    if (submissions.length !== 2) {
+      throw new Error("Match must have exactly 2 submissions to end voting");
     }
 
     // Count votes for each submission
@@ -173,25 +242,20 @@ export class MatchService {
       return acc;
     }, {} as Record<string, number>);
 
-    // Find winner (submission with most votes)
-    const winningSubmissionId = Object.entries(voteCount).reduce((a, b) =>
-      voteCount[a[0]] > voteCount[b[0]] ? a : b
-    )[0];
-
-    const winningSubmission = submissions.find(
-      (s) => s.id === winningSubmissionId
+    const sortedSubmissions = Object.entries(voteCount).sort(
+      (a, b) => b[1] - a[1]
     );
-    if (!winningSubmission) return null;
+    const topVotes = sortedSubmissions[0][1];
+    const secondVotes = sortedSubmissions[1][1];
 
-    // Update match with winner
-    const { error } = await supabase
-      .from("matches")
-      .update({ winner_id: winningSubmission.user_id })
-      .eq("id", matchId);
+    // Check for tie
+    if (topVotes === secondVotes) {
+      return { winner: null, isTie: true };
+    }
 
-    if (error) throw error;
-
-    return winningSubmission.user_id;
+    // No tie - calculate winner normally
+    const winner = await this.calculateMatchWinner(matchId);
+    return { winner, isTie: false };
   }
 
   /**
@@ -246,8 +310,31 @@ export class MatchService {
     console.log("Setting up real-time subscription for match:", matchId);
 
     let isSubscribed = true;
+    let matchInterval: NodeJS.Timeout;
     let submissionsInterval: NodeJS.Timeout;
     let votesInterval: NodeJS.Timeout;
+
+    // Fallback polling for match state
+    const startMatchPolling = () => {
+      matchInterval = setInterval(async () => {
+        if (!isSubscribed) return;
+
+        try {
+          const currentMatch = await MatchService.getMatch(matchId);
+          const storeMatch = useStore.getState().currentMatch;
+
+          // Only update if match has changed (especially winner_id)
+          if (
+            currentMatch &&
+            JSON.stringify(currentMatch) !== JSON.stringify(storeMatch)
+          ) {
+            setCurrentMatch(currentMatch);
+          }
+        } catch (error) {
+          console.error("Error polling match:", error);
+        }
+      }, 1500); // Poll every 1.5 seconds for faster winner detection
+    };
 
     // Fallback polling for submissions
     const startSubmissionsPolling = () => {
@@ -301,7 +388,25 @@ export class MatchService {
         },
         async (payload) => {
           if (payload.new) {
-            setCurrentMatch(payload.new as Match);
+            const updatedMatch = payload.new as Match;
+            setCurrentMatch(updatedMatch);
+
+            // Force a re-fetch of match data to ensure consistency
+            if (updatedMatch.winner_id) {
+              try {
+                const [submissions, votes] = await Promise.all([
+                  MatchService.getMatchSubmissions(matchId),
+                  MatchService.getMatchVotes(matchId),
+                ]);
+                setSubmissions(submissions);
+                setVotes(votes);
+              } catch (error) {
+                console.error(
+                  "Error refreshing match data after winner update:",
+                  error
+                );
+              }
+            }
           }
         }
       )
@@ -347,21 +452,26 @@ export class MatchService {
       .subscribe((status) => {
         console.log("Match subscription status:", status);
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          startMatchPolling();
           startSubmissionsPolling();
           startVotesPolling();
         }
       });
 
-    // Start polling as backup after 5 seconds if no real-time updates
+    // Start polling as backup after 3 seconds if no real-time updates
     setTimeout(() => {
       if (isSubscribed) {
+        startMatchPolling();
         startSubmissionsPolling();
         startVotesPolling();
       }
-    }, 5000);
+    }, 3000);
 
     return () => {
       isSubscribed = false;
+      if (matchInterval) {
+        clearInterval(matchInterval);
+      }
       if (submissionsInterval) {
         clearInterval(submissionsInterval);
       }
