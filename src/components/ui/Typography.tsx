@@ -40,7 +40,7 @@ export const Heading: React.FC<HeadingProps> = ({
   };
 
   const combinedClasses = `${baseClasses} ${levelClasses[level]} ${className}`;
-  const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+  const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
 
   return <Tag className={combinedClasses}>{children}</Tag>;
 };
