@@ -1,7 +1,17 @@
 import React from "react";
-import { Crown, LogOut, User, Trophy, Users, Settings } from "lucide-react";
+import {
+  Crown,
+  LogOut,
+  User,
+  Trophy,
+  Users,
+  Settings,
+  Sparkles,
+} from "lucide-react";
+import { motion } from "framer-motion";
 import { useStore } from "../store/useStore";
 import { AuthService } from "../services/authService";
+import { Button, Container, Heading, Text } from "./ui";
 
 export const Header: React.FC = () => {
   const { user, currentTournament, participants, setCurrentView, currentView } =
@@ -31,127 +41,187 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-primary-100"
+    >
+      <Container>
+        <motion.div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo and Title */}
-          <div className="flex items-center gap-3">
-            <Crown className="w-8 h-8 text-primary-600" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                ImaginArena 🎨⚔️
-              </h1>
-              <p className="text-xs text-gray-500">{getStatusText()}</p>
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="flex items-center gap-3"
+          >
+            <div className="relative">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 5 }}
+                className="bg-gradient-to-br from-primary to-primary-600 p-2 rounded-xl shadow-lg"
+              >
+                <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              </motion.div>
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.5, 1, 0.5],
+                }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                className="absolute -top-1 -right-1"
+              >
+                <Sparkles className="w-3 h-3 text-accent" />
+              </motion.div>
             </div>
-          </div>
+            <div>
+              <Heading
+                level={2}
+                className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                ImaginArena
+              </Heading>
+              <Text variant="small" className="text-textcolor-secondary">
+                {getStatusText()}
+              </Text>
+            </div>
+          </motion.div>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-4">
-            <button
+          <nav className="hidden md:flex items-center gap-2">
+            <Button
+              variant={currentView === "lobby" ? "primary" : "ghost"}
+              size="sm"
               onClick={() => setCurrentView("lobby")}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentView === "lobby"
-                  ? "bg-primary-100 text-primary-700"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
+              className="transition-all duration-200"
             >
-              <Users className="w-4 h-4 inline mr-1" />
+              <Users className="w-4 h-4" />
               Lobby
-            </button>
+            </Button>
 
             {currentTournament && currentTournament.status !== "lobby" && (
-              <button
-                onClick={() => setCurrentView("tournament")}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              <Button
+                variant={
                   currentView === "tournament" || currentView === "results"
-                    ? "bg-primary-100 text-primary-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
+                    ? "primary"
+                    : "ghost"
+                }
+                size="sm"
+                onClick={() => setCurrentView("tournament")}
+                className="transition-all duration-200"
               >
-                <Trophy className="w-4 h-4 inline mr-1" />
+                <Trophy className="w-4 h-4" />
                 Tournament
-              </button>
+              </Button>
             )}
 
             {/* Admin Navigation - Only show for admin users */}
             {user?.is_admin && (
-              <button
+              <Button
+                variant={currentView === "admin" ? "secondary" : "ghost"}
+                size="sm"
                 onClick={() => setCurrentView("admin")}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === "admin"
-                    ? "bg-red-100 text-red-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                }`}
+                className="transition-all duration-200"
               >
-                <Settings className="w-4 h-4 inline mr-1" />
+                <Settings className="w-4 h-4" />
                 Admin
-              </button>
+              </Button>
             )}
           </nav>
 
           {/* User Menu */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <User className="w-4 h-4" />
-              <span className="font-medium">{user?.username}</span>
+          <motion.div
+            initial={{ x: 20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="flex items-center gap-3"
+          >
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-xl">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <Text className="font-semibold text-textcolor-primary">
+                {user?.username}
+              </Text>
             </div>
 
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSignOut}
-              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-red-50 hover:text-red-600 transition-colors"
               title="Sign out"
             >
               <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </motion.div>
+        </motion.div>
+      </Container>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-gray-200 bg-gray-50">
-        <div className="px-4 py-2 flex gap-2">
-          <button
-            onClick={() => setCurrentView("lobby")}
-            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              currentView === "lobby"
-                ? "bg-primary-100 text-primary-700"
-                : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            }`}
-          >
-            <Users className="w-4 h-4 inline mr-1" />
-            Lobby
-          </button>
-
-          {currentTournament && currentTournament.status !== "lobby" && (
-            <button
-              onClick={() => setCurrentView("tournament")}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentView === "tournament" || currentView === "results"
-                  ? "bg-primary-100 text-primary-700"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
+      <motion.div
+        initial={{ y: -10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="md:hidden border-t border-primary-100 bg-gradient-to-r from-primary-25 to-secondary-25"
+      >
+        <Container>
+          <div className="py-3 flex gap-2">
+            <Button
+              variant={currentView === "lobby" ? "primary" : "ghost"}
+              size="sm"
+              onClick={() => setCurrentView("lobby")}
+              className="flex-1 justify-center"
             >
-              <Trophy className="w-4 h-4 inline mr-1" />
-              Tournament
-            </button>
-          )}
+              <Users className="w-4 h-4" />
+              Lobby
+            </Button>
 
-          {/* Admin Navigation - Mobile */}
-          {user?.is_admin && (
-            <button
-              onClick={() => setCurrentView("admin")}
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                currentView === "admin"
-                  ? "bg-red-100 text-red-700"
-                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              }`}
+            {currentTournament && currentTournament.status !== "lobby" && (
+              <Button
+                variant={
+                  currentView === "tournament" || currentView === "results"
+                    ? "primary"
+                    : "ghost"
+                }
+                size="sm"
+                onClick={() => setCurrentView("tournament")}
+                className="flex-1 justify-center"
+              >
+                <Trophy className="w-4 h-4" />
+                Tournament
+              </Button>
+            )}
+
+            {/* Admin Navigation - Mobile */}
+            {user?.is_admin && (
+              <Button
+                variant={currentView === "admin" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setCurrentView("admin")}
+                className="flex-1 justify-center"
+              >
+                <Settings className="w-4 h-4" />
+                Admin
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile User Info */}
+          <div className="sm:hidden pb-3 flex items-center justify-center gap-2 px-3 py-2 bg-primary-50 rounded-xl mx-4 mb-2">
+            <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
+              <User className="w-3 h-3 text-white" />
+            </div>
+            <Text
+              variant="small"
+              className="font-semibold text-textcolor-primary"
             >
-              <Settings className="w-4 h-4 inline mr-1" />
-              Admin
-            </button>
-          )}
-        </div>
-      </div>
-    </header>
+              {user?.username}
+            </Text>
+          </div>
+        </Container>
+      </motion.div>
+    </motion.header>
   );
 };
