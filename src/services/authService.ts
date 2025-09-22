@@ -11,8 +11,63 @@ export class AuthService {
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      // Provide user-friendly error messages for common authentication errors
+      if (error.message.includes("Invalid login credentials")) {
+        throw new Error(
+          "Incorrect email or password. Please check your credentials and try again."
+        );
+      }
+      if (error.message.includes("Email not confirmed")) {
+        throw new Error(
+          "Please check your email and confirm your account before signing in."
+        );
+      }
+      if (error.message.includes("Too many requests")) {
+        throw new Error(
+          "Too many login attempts. Please wait a few minutes before trying again."
+        );
+      }
+      if (error.message.includes("User not found")) {
+        throw new Error(
+          "No account found with this email address. Please check your email or sign up for a new account."
+        );
+      }
+
+      // Fallback for other authentication errors
+      throw new Error(
+        "Sign in failed. Please check your email and password and try again."
+      );
+    }
     return data;
+  }
+
+  /**
+   * Check if username is available
+   */
+  static async isUsernameAvailable(username: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id")
+      .eq("username", username)
+      .single();
+
+    // If no error and data exists, username is taken
+    if (!error && data) {
+      return false;
+    }
+
+    // If error is "PGRST116" (no rows found), username is available
+    if (error && error.code === "PGRST116") {
+      return true;
+    }
+
+    // For any other error, throw it
+    if (error) {
+      throw error;
+    }
+
+    return true;
   }
 
   /**
@@ -23,6 +78,26 @@ export class AuthService {
     password: string,
     username: string
   ) {
+    // First, check if username is available
+    try {
+      const isAvailable = await AuthService.isUsernameAvailable(username);
+      if (!isAvailable) {
+        throw new Error(
+          `Username "${username}" is already taken. Please choose a different username.`
+        );
+      }
+    } catch (error) {
+      // If it's our custom error about username being taken, re-throw it
+      if (error instanceof Error && error.message.includes("already taken")) {
+        throw error;
+      }
+      // For other errors, throw a generic message
+      throw new Error(
+        "Unable to check username availability. Please try again."
+      );
+    }
+
+    // If username is available, proceed with auth user creation
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -36,8 +111,31 @@ export class AuthService {
         await AuthService.createOrUpdateProfile(data.user.id, username);
       } catch (profileError) {
         console.error("Failed to create user profile:", profileError);
-        // Don't throw here as the auth user was created successfully
-        // The profile creation will be handled by the auth listener
+
+        // If profile creation fails after auth user creation, we need to clean up
+        // Delete the auth user that was just created
+        try {
+          await supabase.auth.admin.deleteUser(data.user.id);
+        } catch (cleanupError) {
+          console.error(
+            "Failed to cleanup auth user after profile creation failure:",
+            cleanupError
+          );
+        }
+
+        // Check if it's a username constraint error and provide user-friendly message
+        if (profileError instanceof Error) {
+          if (profileError.message.includes("users_username_key")) {
+            throw new Error(
+              `Username "${username}" is already taken. Please choose a different username.`
+            );
+          }
+          throw new Error(
+            `Failed to create user profile: ${profileError.message}`
+          );
+        }
+
+        throw new Error("Failed to create user profile. Please try again.");
       }
     }
 
@@ -83,7 +181,15 @@ export class AuthService {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // Provide user-friendly error messages for common constraint violations
+      if (error.message.includes("users_username_key")) {
+        throw new Error(
+          `Username "${username}" is already taken. Please choose a different username.`
+        );
+      }
+      throw error;
+    }
     return data;
   }
 

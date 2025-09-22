@@ -140,7 +140,7 @@ export const Footer = () => {
             className="text-center pt-4 border-t border-primary-100 w-full"
           >
             <Text variant="small" className="text-textcolor-secondary">
-              © 2024 ImaginArena. Built for creative battles and artistic
+              © 2025 ImaginArena. Built for creative battles and artistic
               expression.
             </Text>
           </motion.div>

@@ -111,7 +111,7 @@ export const UsernameSetup: React.FC = () => {
           <div>
             <label
               htmlFor="username"
-              className="block text-sm font-semibold text-textcolor-primary mb-2"
+              className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
             >
               Username
             </label>
@@ -121,7 +121,7 @@ export const UsernameSetup: React.FC = () => {
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className={`w-full px-4 py-3 pl-12 pr-12 border rounded-xl focus:ring-2 focus:ring-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`w-full px-4 py-3 pl-12 pr-12 border rounded-xl text-textcolor-light-secondary focus:ring-2 focus:ring-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                   username.trim() && isValidUsername
                     ? "border-accent focus:border-accent"
                     : username.trim() && !isValidUsername

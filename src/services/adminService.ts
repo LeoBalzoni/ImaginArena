@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { TournamentService } from "./tournamentService";
 
 export class AdminService {
   /**
@@ -262,6 +263,60 @@ export class AdminService {
       return { success: true };
     } catch (error) {
       console.error("Error updating user admin status:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Assign match winner (admin only) - for debugging/testing purposes
+   */
+  static async assignMatchWinner(matchId: string, winnerId: string) {
+    try {
+      // Check if user is admin
+      const isAdmin = await AdminService.isCurrentUserAdmin();
+      if (!isAdmin) {
+        throw new Error("Unauthorized: Admin access required");
+      }
+
+      // Verify the match exists and get match details
+      const { data: match, error: matchError } = await supabase
+        .from("matches")
+        .select("id, player1_id, player2_id, winner_id, tournament_id")
+        .eq("id", matchId)
+        .single();
+
+      if (matchError) throw matchError;
+      if (!match) throw new Error("Match not found");
+
+      // Verify the winner is one of the participants
+      if (winnerId !== match.player1_id && winnerId !== match.player2_id) {
+        throw new Error("Winner must be one of the match participants");
+      }
+
+      // Check if match is already finished
+      if (match.winner_id) {
+        throw new Error("Match already has a winner");
+      }
+
+      // Update match with winner
+      const { error: updateError } = await supabase
+        .from("matches")
+        .update({ winner_id: winnerId })
+        .eq("id", matchId);
+
+      if (updateError) throw updateError;
+
+      // Create next round matches if this completes a round
+      try {
+        await TournamentService.createNextRoundMatches(match.tournament_id);
+      } catch (nextRoundError) {
+        console.error("Error creating next round matches:", nextRoundError);
+        // Don't throw here - the winner assignment was successful
+      }
+
+      return { success: true, winnerId };
+    } catch (error) {
+      console.error("Error assigning match winner:", error);
       throw error;
     }
   }
