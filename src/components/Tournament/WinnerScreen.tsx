@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Crown, Sparkles, Star, ArrowLeft, Share2 } from "lucide-react";
-import { Button, Card, Container, Heading, Text } from "../ui";
+import {
+  Button,
+  Card,
+  Container,
+  DarkAwareHeading,
+  DarkAwareText,
+  Heading,
+} from "../ui";
 import type { User } from "../../lib/supabase";
 
 interface WinnerScreenProps {
@@ -185,18 +192,19 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
               <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl max-w-md mx-auto">
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Crown className="w-8 h-8 text-yellow-500" />
-                  <Heading
+                  <DarkAwareHeading
+                    onDark={true}
                     level={2}
                     className="text-2xl sm:text-3xl text-gray-800"
                   >
                     {champion.username}
-                  </Heading>
+                  </DarkAwareHeading>
                   <Crown className="w-8 h-8 text-yellow-500" />
                 </div>
 
-                <Text className="text-gray-600 text-lg">
+                <DarkAwareText onDark={true} className="text-gray-600 text-lg">
                   Congratulations on your victory!
-                </Text>
+                </DarkAwareText>
               </Card>
             </motion.div>
           </motion.div>
@@ -214,11 +222,14 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                 <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl max-w-2xl mx-auto">
                   <div className="text-center">
                     <Sparkles className="w-8 h-8 text-accent mx-auto mb-4" />
-                    <Text className="text-lg text-gray-700 leading-relaxed">
+                    <DarkAwareText
+                      onDark={true}
+                      className="text-lg text-gray-700 leading-relaxed"
+                    >
                       You've conquered the tournament and proven yourself as the
                       ultimate creative champion! Your artistic vision and skill
                       have earned you this well-deserved victory.
-                    </Text>
+                    </DarkAwareText>
                   </div>
                 </Card>
               </motion.div>
@@ -235,7 +246,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                 className="flex flex-col sm:flex-row gap-4 justify-center items-center"
               >
                 <Button
-                  variant="secondary"
+                  variant="ghost"
                   size="lg"
                   onClick={onBackToLobby}
                   className="bg-white/90 hover:bg-white text-gray-800 border-0 shadow-lg"

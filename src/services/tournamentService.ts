@@ -190,6 +190,19 @@ export class TournamentService {
         .from("tournaments")
         .update({ status: "finished" })
         .eq("id", tournamentId);
+
+      // Manually update the store to ensure UI updates immediately
+      const { setCurrentTournament } = useStore.getState();
+      const updatedTournament = await supabase
+        .from("tournaments")
+        .select("*")
+        .eq("id", tournamentId)
+        .single();
+
+      if (updatedTournament.data) {
+        setCurrentTournament(updatedTournament.data);
+      }
+
       return;
     }
 

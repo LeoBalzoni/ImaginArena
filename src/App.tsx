@@ -12,7 +12,6 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { LoadingSpinner } from "./components/ui";
-import { TournamentService } from "./services/tournamentService";
 
 function App() {
   const {
@@ -46,15 +45,8 @@ function App() {
 
   const champion = getChampion();
 
-  const handleBackToLobby = async () => {
-    try {
-      await TournamentService.leaveTournament();
-      setCurrentView("lobby");
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to return to lobby"
-      );
-    }
+  const handleBackToLobby = () => {
+    setCurrentView("lobby");
   };
 
   useEffect(() => {
@@ -83,7 +75,7 @@ function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50">
         <div className="text-center">
-          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <LoadingSpinner size="lg" />
           <p className="text-textcolor-secondary">Loading ImaginArena...</p>
         </div>
       </div>
