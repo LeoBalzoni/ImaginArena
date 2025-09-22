@@ -11,11 +11,13 @@ import {
   Shuffle,
   Zap,
   Sparkles,
+  Crown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { MatchService } from "../../services/matchService";
 import { TournamentService } from "../../services/tournamentService";
+import { AdminService } from "../../services/adminService";
 import {
   Button,
   Card,
@@ -52,6 +54,7 @@ export const MatchScreen: React.FC = () => {
   const [showCoinToss, setShowCoinToss] = useState(false);
   const [isEndingVoting, setIsEndingVoting] = useState(false);
   const [isChangingPrompt, setIsChangingPrompt] = useState(false);
+  const [isAssigningWinner, setIsAssigningWinner] = useState(false);
 
   useEffect(() => {
     if (currentMatch) {
@@ -230,6 +233,21 @@ export const MatchScreen: React.FC = () => {
       console.error("Failed to change prompt:", error);
     } finally {
       setIsChangingPrompt(false);
+    }
+  };
+
+  const handleAssignWinner = async (winnerId: string) => {
+    if (!currentMatch || !user?.is_admin) return;
+
+    setIsAssigningWinner(true);
+    try {
+      await AdminService.assignMatchWinner(currentMatch.id, winnerId);
+      // Refresh match data to show updated state
+      await loadMatchData();
+    } catch (error) {
+      console.error("Error assigning winner:", error);
+    } finally {
+      setIsAssigningWinner(false);
     }
   };
 
@@ -544,6 +562,66 @@ export const MatchScreen: React.FC = () => {
                 )}
               </Card>
             </motion.div>
+
+            {/* Admin Winner Assignment Controls - Submission Phase */}
+            {user?.is_admin && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+                className="mt-8"
+              >
+                <Card className="bg-gradient-to-r from-red-50 to-orange-50 border-red-200">
+                  <div className="text-center space-y-4">
+                    <div className="flex items-center justify-center gap-2">
+                      <Crown className="w-5 h-5 text-red-600" />
+                      <Text
+                        variant="small"
+                        color="secondary"
+                        className="font-medium text-red-700"
+                      >
+                        Admin: Quick Winner Assignment (Debug)
+                      </Text>
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleAssignWinner(currentMatch.player1_id)
+                        }
+                        isLoading={isAssigningWinner}
+                        disabled={isAssigningWinner}
+                        className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                      >
+                        <Crown className="w-4 h-4" />
+                        {player1?.username || "Player 1"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleAssignWinner(currentMatch.player2_id)
+                        }
+                        isLoading={isAssigningWinner}
+                        disabled={isAssigningWinner}
+                        className="flex-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                      >
+                        <Crown className="w-4 h-4" />
+                        {player2?.username || "Player 2"}
+                      </Button>
+                    </div>
+                    <Text
+                      variant="caption"
+                      color="secondary"
+                      className="text-red-600"
+                    >
+                      Skip submissions and voting - instantly assign winner
+                    </Text>
+                  </div>
+                </Card>
+              </motion.div>
+            )}
           </motion.div>
         )}
 
@@ -582,23 +660,73 @@ export const MatchScreen: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="mt-6"
+                  className="mt-6 space-y-4"
                 >
                   <Button
                     variant="secondary"
                     size="lg"
                     onClick={endVoting}
                     isLoading={isEndingVoting}
-                    className="bg-red-600 hover:bg-red-700 text-white"
+                    className="bg-red-600 hover:bg-red-700 text-white w-full"
                   >
                     <Eye className="w-5 h-5" />
                     {isEndingVoting
                       ? "Ending Voting..."
                       : "End Voting & Reveal Results"}
                   </Button>
-                  <Text variant="caption" color="secondary" className="mt-2">
+                  <Text
+                    variant="caption"
+                    color="secondary"
+                    className="text-center"
+                  >
                     Admin only - Click to reveal votes and determine winner
                   </Text>
+
+                  {/* Admin Winner Assignment Controls */}
+                  <div className="border-t border-gray-200 pt-4">
+                    <Text
+                      variant="small"
+                      color="secondary"
+                      className="text-center mb-3 font-medium"
+                    >
+                      Quick Winner Assignment (Debug)
+                    </Text>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleAssignWinner(currentMatch.player1_id)
+                        }
+                        isLoading={isAssigningWinner}
+                        disabled={isAssigningWinner}
+                        className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                      >
+                        <Crown className="w-4 h-4" />
+                        {player1?.username || "Player 1"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          handleAssignWinner(currentMatch.player2_id)
+                        }
+                        isLoading={isAssigningWinner}
+                        disabled={isAssigningWinner}
+                        className="flex-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                      >
+                        <Crown className="w-4 h-4" />
+                        {player2?.username || "Player 2"}
+                      </Button>
+                    </div>
+                    <Text
+                      variant="caption"
+                      color="secondary"
+                      className="text-center mt-2"
+                    >
+                      Instantly assign winner without voting calculation
+                    </Text>
+                  </div>
                 </motion.div>
               )}
             </motion.div>

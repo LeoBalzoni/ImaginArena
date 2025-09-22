@@ -1,9 +1,20 @@
-import React, { useState } from "react";
-import { Mail, Eye, EyeOff, Crown, Sparkles, User } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Mail,
+  Eye,
+  EyeOff,
+  Crown,
+  Sparkles,
+  User,
+  Check,
+  X,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthService } from "../../services/authService";
 import { useStore } from "../../store/useStore";
-import { Button, Card, Heading, Text } from "../ui";
+import { Button, Card, DarkAwareHeading, Heading, Text } from "../ui";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -12,11 +23,57 @@ export const LoginForm: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { setError } = useStore();
+  const [usernameStatus, setUsernameStatus] = useState<
+    "idle" | "checking" | "available" | "taken" | "invalid"
+  >("idle");
+  const { setError, error } = useStore();
+
+  // Debounced username availability check
+  const checkUsernameAvailability = useCallback(
+    async (usernameToCheck: string) => {
+      if (!usernameToCheck || usernameToCheck.length < 3) {
+        setUsernameStatus("invalid");
+        return;
+      }
+
+      setUsernameStatus("checking");
+
+      try {
+        const isAvailable = await AuthService.isUsernameAvailable(
+          usernameToCheck
+        );
+        setUsernameStatus(isAvailable ? "available" : "taken");
+      } catch (error) {
+        console.error("Error checking username availability:", error);
+        setUsernameStatus("idle");
+      }
+    },
+    []
+  );
+
+  // Debounce username checking
+  useEffect(() => {
+    if (!isSignUp || !username) {
+      setUsernameStatus("idle");
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      checkUsernameAvailability(username);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [username, isSignUp, checkUsernameAvailability]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password || (isSignUp && !username)) return;
+
+    // Prevent submission if username is not available
+    if (isSignUp && usernameStatus === "taken") {
+      setError("Please choose a different username.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -89,9 +146,13 @@ export const LoginForm: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.3 }}
             >
-              <Heading level={2} className="text-xl mb-2">
+              <DarkAwareHeading
+                onDark={true}
+                level={2}
+                className="text-xl mb-2"
+              >
                 {isSignUp ? "Join the Arena" : "Welcome Back"}
-              </Heading>
+              </DarkAwareHeading>
               <Text className="text-textcolor-secondary">
                 {isSignUp
                   ? "Create an account to join the creative competition"
@@ -100,6 +161,35 @@ export const LoginForm: React.FC = () => {
             </motion.div>
           </AnimatePresence>
         </motion.div>
+
+        {/* Error Display */}
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6"
+            >
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <Text className="text-red-800 font-medium text-sm leading-relaxed">
+                    {error}
+                  </Text>
+                </div>
+                <button
+                  onClick={() => setError(null)}
+                  className="text-red-400 hover:text-red-600 transition-colors"
+                  type="button"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <motion.form
           initial={{ opacity: 0 }}
@@ -112,7 +202,7 @@ export const LoginForm: React.FC = () => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-semibold text-textcolor-primary mb-2"
+              className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
             >
               Email address
             </label>
@@ -122,7 +212,7 @@ export const LoginForm: React.FC = () => {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-textcolor-light-secondary text-textcolor-light-secondary"
                 placeholder="Enter your email"
                 required
                 disabled={isLoading}
@@ -142,7 +232,7 @@ export const LoginForm: React.FC = () => {
               >
                 <label
                   htmlFor="username"
-                  className="block text-sm font-semibold text-textcolor-primary mb-2"
+                  className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
                 >
                   Username
                 </label>
@@ -152,7 +242,13 @@ export const LoginForm: React.FC = () => {
                     id="username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`w-full px-4 py-3 pl-12 pr-12 border rounded-xl focus:ring-2 focus:ring-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-textcolor-light-secondary text-textcolor-light-secondary ${
+                      usernameStatus === "available"
+                        ? "border-green-300 focus:border-green-500"
+                        : usernameStatus === "taken"
+                        ? "border-red-300 focus:border-red-500"
+                        : "border-gray-300 focus:border-primary"
+                    }`}
                     placeholder="Choose a username"
                     required={isSignUp}
                     disabled={isLoading}
@@ -160,10 +256,43 @@ export const LoginForm: React.FC = () => {
                     maxLength={20}
                   />
                   <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-textcolor-secondary" />
+
+                  {/* Username status indicator */}
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    {usernameStatus === "checking" && (
+                      <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                    )}
+                    {usernameStatus === "available" && (
+                      <Check className="w-4 h-4 text-green-500" />
+                    )}
+                    {usernameStatus === "taken" && (
+                      <X className="w-4 h-4 text-red-500" />
+                    )}
+                  </div>
                 </div>
-                <Text variant="small" className="text-textcolor-secondary mt-1">
-                  Username must be 3-20 characters long
-                </Text>
+                <div className="mt-1 space-y-1">
+                  <Text variant="small" className="text-textcolor-secondary">
+                    Username must be 3-20 characters long
+                  </Text>
+                  {usernameStatus === "available" && (
+                    <div className="text-green-500 text-sm flex items-center gap-1 font-medium">
+                      <Check className="w-3 h-3" />
+                      Username is available!
+                    </div>
+                  )}
+                  {usernameStatus === "taken" && (
+                    <div className="text-red-500 text-sm flex items-center gap-1 font-medium">
+                      <X className="w-3 h-3" />
+                      Username is already taken
+                    </div>
+                  )}
+                  {usernameStatus === "checking" && (
+                    <div className="text-gray-300 text-sm flex items-center gap-1 font-medium">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Checking availability...
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -172,7 +301,7 @@ export const LoginForm: React.FC = () => {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-semibold text-textcolor-primary mb-2"
+              className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
             >
               Password
             </label>
@@ -182,7 +311,7 @@ export const LoginForm: React.FC = () => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-textcolor-light-secondary text-textcolor-light-secondary"
                 placeholder={
                   isSignUp ? "Create a password" : "Enter your password"
                 }
@@ -221,7 +350,13 @@ export const LoginForm: React.FC = () => {
               variant="primary"
               size="lg"
               disabled={
-                isLoading || !email || !password || (isSignUp && !username)
+                isLoading ||
+                !email ||
+                !password ||
+                (isSignUp &&
+                  (!username ||
+                    usernameStatus === "taken" ||
+                    usernameStatus === "checking"))
               }
               isLoading={isLoading}
               className="w-full"
@@ -240,7 +375,7 @@ export const LoginForm: React.FC = () => {
           className="mt-8 text-center pt-6 border-t border-gray-200"
         >
           <Button
-            variant="ghost"
+            variant="outline"
             onClick={() => {
               setIsSignUp(!isSignUp);
               setPassword("");
@@ -248,7 +383,7 @@ export const LoginForm: React.FC = () => {
               setError(null);
             }}
             disabled={isLoading}
-            className="text-textcolor-secondary hover:text-textcolor-primary"
+            className="text-primary hover:text-primary-600 font-semibold transition-colors duration-200 mx-auto"
           >
             {isSignUp
               ? "Already have an account? Sign in"
