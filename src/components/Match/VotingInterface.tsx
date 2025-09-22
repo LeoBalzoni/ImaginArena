@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Vote, Loader2, Users, ZoomIn } from "lucide-react";
+import { Users, ZoomIn, Heart, Sparkles } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MatchService } from "../../services/matchService";
 import { useStore } from "../../store/useStore";
+import { Button, Card, DarkAwareHeading, Text } from "../ui";
 import { ImageModal } from "./ImageModal";
 import type { User, Submission, Vote as VoteType } from "../../lib/supabase";
 
@@ -70,188 +72,193 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
 
   const userVote = getUserVote();
 
+  const renderSubmissionCard = (
+    player: User,
+    submission: Submission,
+    isPlayer1: boolean
+  ) => {
+    const hasUserVoted = userVote?.voted_for_submission_id === submission.id;
+    const isSelected = selectedSubmission === submission.id;
+    const voteCount = getVoteCount(submission.id);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: isPlayer1 ? 0.2 : 0.4, duration: 0.5 }}
+        className="w-full"
+      >
+        <Card
+          hover={canVote}
+          selected={hasUserVoted || isSelected}
+          className={`relative overflow-hidden transition-all duration-300 ${
+            hasUserVoted
+              ? "border-accent shadow-glow-accent bg-gradient-to-br from-accent-50 to-accent-100"
+              : isSelected && canVote
+              ? "border-primary shadow-glow bg-primary-50"
+              : canVote
+              ? "hover:border-primary-300 cursor-pointer"
+              : ""
+          }`}
+          onClick={() => {
+            if (canVote && !hasUserVoted) {
+              setSelectedSubmission(submission.id);
+            }
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  isPlayer1
+                    ? "bg-gradient-to-br from-primary to-primary-600"
+                    : "bg-gradient-to-br from-secondary to-secondary-600"
+                }`}
+              >
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <DarkAwareHeading
+                onDark={true}
+                level={4}
+                className={hasUserVoted ? "text-accent-800" : ""}
+              >
+                {player.username}
+              </DarkAwareHeading>
+            </div>
+
+            {showVoteCounts && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.6 }}
+                className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-full"
+              >
+                <Users className="w-4 h-4 text-textcolor-secondary" />
+                <Text variant="small" className="font-semibold">
+                  {voteCount} votes
+                </Text>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Image Container */}
+          <div className="relative group">
+            <motion.div
+              whileHover={canVote ? { scale: 1.02 } : {}}
+              className="relative rounded-2xl overflow-hidden"
+            >
+              <img
+                src={submission.image_url}
+                alt={`${player.username}'s submission`}
+                className="w-full h-64 sm:h-72 object-cover transition-transform duration-300"
+              />
+
+              {/* Zoom Button */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+                className="absolute top-3 right-3"
+              >
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setModalImage({
+                      url: submission.image_url,
+                      playerName: player.username,
+                    });
+                  }}
+                  className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all backdrop-blur-sm shadow-lg hover:scale-110"
+                  title="View full size"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                </button>
+              </motion.div>
+
+              {/* Vote Overlay */}
+              <AnimatePresence>
+                {hasUserVoted && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="absolute inset-0 bg-accent/20 backdrop-blur-sm flex items-center justify-center"
+                  >
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="bg-accent text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2"
+                    >
+                      <Heart className="w-5 h-5 fill-current" />
+                      <Text className="font-semibold text-white">
+                        Your Vote
+                      </Text>
+                      <Sparkles className="w-5 h-5" />
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Selection Glow */}
+              {isSelected && canVote && !hasUserVoted && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 bg-primary/10 backdrop-blur-sm border-2 border-primary rounded-2xl"
+                />
+              )}
+            </motion.div>
+          </div>
+
+          {/* Vote Button */}
+          {canVote && !hasUserVoted && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="mt-6"
+            >
+              <Button
+                variant={isSelected ? "primary" : "outline"}
+                size="lg"
+                onClick={() => handleVote(submission.id)}
+                isLoading={isVoting}
+                className="w-full"
+              >
+                <Heart className="w-5 h-5" />
+                Vote for {player.username}
+              </Button>
+            </motion.div>
+          )}
+        </Card>
+      </motion.div>
+    );
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Player 1 Submission */}
-      <div
-        className={`card transition-all ${
-          userVote?.voted_for_submission_id === player1Submission.id
-            ? "border-green-500 bg-green-50"
-            : canVote && selectedSubmission === player1Submission.id
-            ? "border-primary-500 bg-primary-50"
-            : ""
-        }`}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-semibold text-gray-900">{player1.username}</h4>
-          {showVoteCounts && (
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <Users className="w-4 h-4" />
-              <span>{getVoteCount(player1Submission.id)} votes</span>
-            </div>
-          )}
-        </div>
-
-        <div className="relative">
-          <div
-            className={`relative cursor-pointer rounded-lg overflow-hidden ${
-              canVote
-                ? "hover:ring-2 hover:ring-primary-300"
-                : "hover:ring-2 hover:ring-blue-300"
-            }`}
-            onClick={() => {
-              if (canVote) {
-                setSelectedSubmission(player1Submission.id);
-              }
-            }}
-          >
-            <img
-              src={player1Submission.image_url}
-              alt={`${player1.username}'s submission`}
-              className="w-full h-64 object-cover"
-            />
-
-            {/* Zoom overlay */}
-            <div className="absolute top-2 right-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setModalImage({
-                    url: player1Submission.image_url,
-                    playerName: player1.username,
-                  });
-                }}
-                className="bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
-                title="View full size"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-            </div>
-            {userVote?.voted_for_submission_id === player1Submission.id && (
-              <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
-                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  Your Vote
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {canVote && (
-          <button
-            onClick={() => handleVote(player1Submission.id)}
-            disabled={isVoting}
-            className={`btn-primary w-full mt-4 flex items-center justify-center gap-2 ${
-              selectedSubmission === player1Submission.id
-                ? "ring-2 ring-primary-300"
-                : ""
-            }`}
-          >
-            {isVoting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Vote className="w-4 h-4" />
-            )}
-            Vote for {player1.username}
-          </button>
-        )}
-      </div>
-
-      {/* Player 2 Submission */}
-      <div
-        className={`card transition-all ${
-          userVote?.voted_for_submission_id === player2Submission.id
-            ? "border-green-500 bg-green-50"
-            : canVote && selectedSubmission === player2Submission.id
-            ? "border-primary-500 bg-primary-50"
-            : ""
-        }`}
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-semibold text-gray-900">{player2.username}</h4>
-          {showVoteCounts && (
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              <Users className="w-4 h-4" />
-              <span>{getVoteCount(player2Submission.id)} votes</span>
-            </div>
-          )}
-        </div>
-
-        <div className="relative">
-          <div
-            className={`relative cursor-pointer rounded-lg overflow-hidden ${
-              canVote
-                ? "hover:ring-2 hover:ring-primary-300"
-                : "hover:ring-2 hover:ring-blue-300"
-            }`}
-            onClick={() => {
-              if (canVote) {
-                setSelectedSubmission(player2Submission.id);
-              }
-            }}
-          >
-            <img
-              src={player2Submission.image_url}
-              alt={`${player2.username}'s submission`}
-              className="w-full h-64 object-cover"
-            />
-
-            {/* Zoom overlay */}
-            <div className="absolute top-2 right-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setModalImage({
-                    url: player2Submission.image_url,
-                    playerName: player2.username,
-                  });
-                }}
-                className="bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-2 rounded-full transition-all"
-                title="View full size"
-              >
-                <ZoomIn className="w-4 h-4" />
-              </button>
-            </div>
-            {userVote?.voted_for_submission_id === player2Submission.id && (
-              <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center">
-                <div className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                  Your Vote
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {canVote && (
-          <button
-            onClick={() => handleVote(player2Submission.id)}
-            disabled={isVoting}
-            className={`btn-primary w-full mt-4 flex items-center justify-center gap-2 ${
-              selectedSubmission === player2Submission.id
-                ? "ring-2 ring-primary-300"
-                : ""
-            }`}
-          >
-            {isVoting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Vote className="w-4 h-4" />
-            )}
-            Vote for {player2.username}
-          </button>
-        )}
-      </div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.6 }}
+      className="grid gap-6 md:gap-8 md:grid-cols-2"
+    >
+      {renderSubmissionCard(player1, player1Submission, true)}
+      {renderSubmissionCard(player2, player2Submission, false)}
 
       {/* Image Modal */}
-      {modalImage && (
-        <ImageModal
-          isOpen={true}
-          onClose={() => setModalImage(null)}
-          imageUrl={modalImage.url}
-          playerName={modalImage.playerName}
-          prompt={prompt}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {modalImage && (
+          <ImageModal
+            isOpen={true}
+            onClose={() => setModalImage(null)}
+            imageUrl={modalImage.url}
+            playerName={modalImage.playerName}
+            prompt={prompt}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };

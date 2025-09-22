@@ -1,7 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Clock, Crown, Loader2, Play, Users, RefreshCw } from "lucide-react";
+import { Clock, Crown, Play, Users, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
+import {
+  Button,
+  Card,
+  Container,
+  Heading,
+  Text,
+  LoadingSpinner,
+  DarkAwareHeading,
+  DarkAwareText,
+} from "../ui";
 
 export const LobbyScreen: React.FC = () => {
   const {
@@ -141,169 +152,251 @@ export const LobbyScreen: React.FC = () => {
     const slots = Array.from({ length: 16 }, (_, i) => {
       const participant = participants[i];
       return (
-        <div
+        <motion.div
           key={i}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: i * 0.05, duration: 0.3 }}
           className={`
-            aspect-square rounded-lg border-2 border-dashed flex items-center justify-center
+            aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-2 transition-all duration-200
             ${
               participant
-                ? "border-primary-300 bg-primary-50"
+                ? "border-primary-300 bg-primary-50 shadow-sm hover:shadow-glow"
                 : "border-gray-300 bg-gray-50"
             }
           `}
         >
           {participant ? (
-            <div className="text-center">
-              <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-1">
-                <Users className="w-4 h-4 text-white" />
+            <AnimatePresence mode="wait">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center"
+              >
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                </div>
+                <p className="text-xs sm:text-sm font-semibold text-textcolor-primary truncate px-1">
+                  {participant.username}
+                </p>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className="text-center opacity-60">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-2">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
               </div>
-              <p className="text-xs font-medium text-gray-900 truncate px-1">
-                {participant.username}
+              <p className="text-xs sm:text-sm text-textcolor-secondary">
+                Waiting...
               </p>
             </div>
-          ) : (
-            <div className="text-center">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-1">
-                <Users className="w-4 h-4 text-gray-500" />
-              </div>
-              <p className="text-xs text-gray-500">Waiting...</p>
-            </div>
           )}
-        </div>
+        </motion.div>
       );
     });
 
-    return <div className="grid grid-cols-4 gap-3 mb-8">{slots}</div>;
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4 mb-8">
+        {slots}
+      </div>
+    );
   };
 
   if (isLoadingTournament) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+        <LoadingSpinner size="lg" text="Loading tournament..." />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <Crown className="w-16 h-16 text-primary-600 mx-auto mb-4" />
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">ImaginArena</h1>
-        <p className="text-xl text-gray-600">Tournament Lobby</p>
-      </div>
+    <Container size="lg" className="py-6 sm:py-8 lg:py-12">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-8 sm:mb-12"
+      >
+        <motion.div
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+          className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-primary to-primary-600 rounded-3xl shadow-glow mb-6"
+        >
+          <Crown className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+        </motion.div>
+        <Heading level={1} className="mb-3">
+          ImaginArena
+        </Heading>
+        <Text variant="body" className="text-lg sm:text-xl">
+          Tournament Lobby
+        </Text>
+      </motion.div>
 
-      <div className="card mb-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            Players ({participants.length}/16)
-          </h2>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={refreshParticipants}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-              title="Refresh participant list"
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <Card className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <DarkAwareHeading
+              onDark={true}
+              level={2}
+              className="text-xl sm:text-2xl"
             >
-              <RefreshCw
-                className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-              />
-              Refresh
-            </button>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <Clock className="w-4 h-4" />
-              <span>
-                {participants.length >= 2
-                  ? "Ready to start!"
-                  : "Need at least 2 players..."}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {renderParticipantGrid()}
-
-        <div className="text-center space-y-4">
-          {!isUserInTournament() ? (
-            <button
-              onClick={joinTournament}
-              disabled={isJoining || participants.length >= 16}
-              className="btn-primary flex items-center gap-2 mx-auto"
-            >
-              {isJoining ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Play className="w-4 h-4" />
-              )}
-              {participants.length >= 16
-                ? "Tournament Full"
-                : "Join Tournament"}
-            </button>
-          ) : (
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <div className="flex items-center justify-center gap-2 text-green-800">
-                  <Users className="w-5 h-5" />
-                  <span className="font-medium">You're in the tournament!</span>
-                </div>
-                <p className="text-sm text-green-600 mt-1">
+              Players ({participants.length}/16)
+            </DarkAwareHeading>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={refreshParticipants}
+                isLoading={isRefreshing}
+                className="self-start sm:self-auto"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4 text-textcolor-secondary" />
+                <Text variant="small" color="secondary">
                   {participants.length >= 2
-                    ? "Tournament ready to start!"
-                    : "Waiting for more players..."}
-                </p>
+                    ? "Ready to start!"
+                    : "Need at least 2 players..."}
+                </Text>
               </div>
+            </div>
+          </div>
 
-              {/* Manual start button */}
-              {participants.length >= 2 && (
-                <button
-                  onClick={startTournament}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 mx-auto"
+          {renderParticipantGrid()}
+
+          <div className="text-center space-y-6">
+            {!isUserInTournament() ? (
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={joinTournament}
+                isLoading={isJoining}
+                disabled={participants.length >= 16}
+                className="w-full sm:w-auto"
+              >
+                <Play className="w-5 h-5" />
+                {participants.length >= 16
+                  ? "Tournament Full"
+                  : "Join Tournament"}
+              </Button>
+            ) : (
+              <div className="space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-gradient-to-r from-accent-50 to-accent-100 border-2 border-accent-200 rounded-2xl p-6"
                 >
-                  <Crown className="w-4 h-4" />
-                  Start Tournament ({participants.length} players)
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+                  <div className="flex items-center justify-center gap-3 text-accent-800 mb-2">
+                    <Users className="w-6 h-6" />
+                    <Text className="font-semibold text-lg text-accent-800">
+                      You're in the tournament!
+                    </Text>
+                  </div>
+                  <Text variant="small" className="text-accent-700">
+                    {participants.length >= 2
+                      ? "Tournament ready to start!"
+                      : "Waiting for more players..."}
+                  </Text>
+                </motion.div>
 
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          How it works
-        </h3>
-        <div className="space-y-3 text-sm text-gray-600">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-              1
-            </div>
-            <p>At least 2 players join the tournament lobby</p>
+                {participants.length >= 2 && (
+                  <Button
+                    variant="accent"
+                    size="lg"
+                    onClick={startTournament}
+                    className="w-full sm:w-auto"
+                  >
+                    <Crown className="w-5 h-5" />
+                    Start Tournament ({participants.length} players)
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-              2
-            </div>
-            <p>Tournament starts manually with single-elimination brackets</p>
+        </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        <Card>
+          <DarkAwareHeading
+            onDark={true}
+            level={3}
+            className="mb-6 text-center sm:text-left"
+          >
+            How it works
+          </DarkAwareHeading>
+          <div className="space-y-4 sm:space-y-6">
+            {[
+              {
+                step: 1,
+                text: "At least 2 players join the tournament lobby",
+                color: "primary",
+              },
+              {
+                step: 2,
+                text: "Tournament starts manually with single-elimination brackets",
+                color: "secondary",
+              },
+              {
+                step: 3,
+                text: "Each match has a creative prompt - generate and submit your best image",
+                color: "accent",
+              },
+              {
+                step: 4,
+                text: "Other players vote for their favorite - winner advances to the next round",
+                color: "primary",
+              },
+            ].map((item, index) => (
+              <motion.div
+                key={item.step}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 + index * 0.1, duration: 0.3 }}
+                className="flex items-start gap-4"
+              >
+                <div
+                  className={`
+                    w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm sm:text-base font-bold text-white shadow-sm flex-shrink-0 mt-1
+                    ${
+                      item.color === "primary"
+                        ? "bg-gradient-to-br from-primary to-primary-600"
+                        : ""
+                    }
+                    ${
+                      item.color === "secondary"
+                        ? "bg-gradient-to-br from-secondary to-secondary-600"
+                        : ""
+                    }
+                    ${
+                      item.color === "accent"
+                        ? "bg-gradient-to-br from-accent to-accent-600"
+                        : ""
+                    }
+                  `}
+                >
+                  {item.step}
+                </div>
+                <DarkAwareText onDark={true} className="flex-1 pt-1 sm:pt-2">
+                  {item.text}
+                </DarkAwareText>
+              </motion.div>
+            ))}
           </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-              3
-            </div>
-            <p>
-              Each match has a creative prompt - generate and submit your best
-              image
-            </p>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-              4
-            </div>
-            <p>
-              Other players vote for their favorite - winner advances to the
-              next round
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+        </Card>
+      </motion.div>
+    </Container>
   );
 };

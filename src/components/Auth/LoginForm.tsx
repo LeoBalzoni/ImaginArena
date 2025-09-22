@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { Mail, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Eye, EyeOff, Crown, Sparkles, User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { AuthService } from "../../services/authService";
 import { useStore } from "../../store/useStore";
+import { Button, Card, Heading, Text } from "../ui";
 
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -37,135 +39,223 @@ export const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="card max-w-md mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          {isSignUp ? "Join" : "Welcome to"} ImaginArena
-        </h1>
-        <p className="text-gray-600">
-          {isSignUp
-            ? "Create an account to join the creative competition"
-            : "Sign in to join the creative competition"}
-        </p>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="w-full max-w-md mx-auto"
+    >
+      <Card className="overflow-hidden">
+        {/* Header with animated logo */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <div className="flex items-center justify-center mb-4">
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              className="bg-gradient-to-br from-primary to-primary-600 p-3 rounded-2xl shadow-lg mr-3"
+            >
+              <Crown className="w-8 h-8 text-white" />
+            </motion.div>
+            <div className="relative">
+              <Heading
+                level={1}
+                className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
+              >
+                ImaginArena
+              </Heading>
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 180, 360],
+                }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
+                className="absolute -top-2 -right-6"
+              >
+                <Sparkles className="w-4 h-4 text-accent" />
+              </motion.div>
+            </div>
+          </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Email address
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="input-field"
-            placeholder="Enter your email"
-            required
-            disabled={isLoading}
-          />
-        </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={isSignUp ? "signup" : "signin"}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Heading level={2} className="text-xl mb-2">
+                {isSignUp ? "Join the Arena" : "Welcome Back"}
+              </Heading>
+              <Text className="text-textcolor-secondary">
+                {isSignUp
+                  ? "Create an account to join the creative competition"
+                  : "Sign in to continue your creative journey"}
+              </Text>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
 
-        {isSignUp && (
+        <motion.form
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          onSubmit={handleSubmit}
+          className="space-y-6"
+        >
+          {/* Email Field */}
           <div>
             <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700 mb-2"
+              htmlFor="email"
+              className="block text-sm font-semibold text-textcolor-primary mb-2"
             >
-              Username
+              Email address
             </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="input-field"
-              placeholder="Choose a username"
-              required={isSignUp}
-              disabled={isLoading}
-              minLength={3}
-              maxLength={20}
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Username must be 3-20 characters long
-            </p>
+            <div className="relative">
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="Enter your email"
+                required
+                disabled={isLoading}
+              />
+              <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-textcolor-secondary" />
+            </div>
           </div>
-        )}
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            Password
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input-field pr-10"
-              placeholder={
-                isSignUp ? "Create a password" : "Enter your password"
-              }
-              required
-              disabled={isLoading}
-              minLength={isSignUp ? 6 : undefined}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-              disabled={isLoading}
+          {/* Username Field (Sign Up Only) */}
+          <AnimatePresence>
+            {isSignUp && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-semibold text-textcolor-primary mb-2"
+                >
+                  Username
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="Choose a username"
+                    required={isSignUp}
+                    disabled={isLoading}
+                    minLength={3}
+                    maxLength={20}
+                  />
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-textcolor-secondary" />
+                </div>
+                <Text variant="small" className="text-textcolor-secondary mt-1">
+                  Username must be 3-20 characters long
+                </Text>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Password Field */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold text-textcolor-primary mb-2"
             >
-              {showPassword ? (
-                <EyeOff className="w-4 h-4" />
-              ) : (
-                <Eye className="w-4 h-4" />
-              )}
-            </button>
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder={
+                  isSignUp ? "Create a password" : "Enter your password"
+                }
+                required
+                disabled={isLoading}
+                minLength={isSignUp ? 6 : undefined}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-textcolor-secondary hover:text-textcolor-primary transition-colors"
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {isSignUp && (
+              <Text variant="small" className="text-textcolor-secondary mt-1">
+                Password must be at least 6 characters long
+              </Text>
+            )}
           </div>
-          {isSignUp && (
-            <p className="text-xs text-gray-500 mt-1">
-              Password must be at least 6 characters long
-            </p>
-          )}
-        </div>
 
-        <button
-          type="submit"
-          disabled={isLoading || !email || !password || (isSignUp && !username)}
-          className="btn-primary w-full flex items-center justify-center gap-2"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Mail className="w-4 h-4" />
-          )}
-          {isSignUp ? "Create Account" : "Sign In"}
-        </button>
-      </form>
+          {/* Submit Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={
+                isLoading || !email || !password || (isSignUp && !username)
+              }
+              isLoading={isLoading}
+              className="w-full"
+            >
+              {!isLoading && <Mail className="w-4 h-4" />}
+              {isSignUp ? "Create Account" : "Sign In"}
+            </Button>
+          </motion.div>
+        </motion.form>
 
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => {
-            setIsSignUp(!isSignUp);
-            setPassword("");
-            setUsername("");
-            setError(null);
-          }}
-          className="text-sm text-gray-600 hover:text-gray-800"
-          disabled={isLoading}
+        {/* Toggle Sign Up/Sign In */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.5 }}
+          className="mt-8 text-center pt-6 border-t border-gray-200"
         >
-          {isSignUp
-            ? "Already have an account? Sign in"
-            : "Don't have an account? Sign up"}
-        </button>
-      </div>
-    </div>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setIsSignUp(!isSignUp);
+              setPassword("");
+              setUsername("");
+              setError(null);
+            }}
+            disabled={isLoading}
+            className="text-textcolor-secondary hover:text-textcolor-primary"
+          >
+            {isSignUp
+              ? "Already have an account? Sign in"
+              : "Don't have an account? Sign up"}
+          </Button>
+        </motion.div>
+      </Card>
+    </motion.div>
   );
 };

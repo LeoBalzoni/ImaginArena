@@ -9,10 +9,23 @@ import {
   RefreshCw,
   Eye,
   Shuffle,
+  Zap,
+  Sparkles,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { MatchService } from "../../services/matchService";
 import { TournamentService } from "../../services/tournamentService";
+import {
+  Button,
+  Card,
+  Container,
+  Heading,
+  Text,
+  LoadingSpinner,
+  DarkAwareHeading,
+  DarkAwareText,
+} from "../ui";
 import { ImageSubmission } from "./ImageSubmission";
 import { VotingInterface } from "./VotingInterface";
 import { CoinToss } from "./CoinToss";
@@ -222,15 +235,20 @@ export const MatchScreen: React.FC = () => {
 
   if (!currentMatch) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">No match selected</p>
-        <button
-          onClick={() => setCurrentView("tournament")}
-          className="btn-primary mt-4"
-        >
-          View Tournament Bracket
-        </button>
-      </div>
+      <Container className="py-12">
+        <div className="text-center">
+          <LoadingSpinner size="lg" text="No match selected" />
+          <div className="mt-8">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => setCurrentView("tournament")}
+            >
+              View Tournament Bracket
+            </Button>
+          </div>
+        </div>
+      </Container>
     );
   }
 
@@ -241,290 +259,610 @@ export const MatchScreen: React.FC = () => {
   const player2Submission = getSubmissionForPlayer(currentMatch.player2_id);
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <Container size="lg" className="py-6 sm:py-8 lg:py-12">
       {/* Header */}
-      <div className="text-center mb-8">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-gray-600" />
-            <span className="font-medium">{player1?.username}</span>
-          </div>
-          <div className="text-2xl font-bold text-gray-400">VS</div>
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-gray-600" />
-            <span className="font-medium">{player2?.username}</span>
-          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-center mb-8 sm:mb-12"
+      >
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-6">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-3 p-4 bg-primary-50 rounded-2xl shadow-sm"
+          >
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <Text className="font-semibold text-primary-800">
+              {player1?.username || "Player 1"}
+            </Text>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-secondary-100 to-secondary-200 rounded-2xl shadow-sm"
+          >
+            <Zap className="w-5 h-5 text-secondary-600" />
+            <Text className="text-xl font-bold text-secondary-800">VS</Text>
+            <Zap className="w-5 h-5 text-secondary-600" />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex items-center gap-3 p-4 bg-accent-50 rounded-2xl shadow-sm"
+          >
+            <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <Text className="font-semibold text-accent-800">
+              {player2?.username || "Player 2"}
+            </Text>
+          </motion.div>
         </div>
 
         {/* Refresh button */}
-        <div className="flex justify-center mb-4">
-          <button
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="flex justify-center mb-6"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={refreshMatchData}
-            disabled={isRefreshing}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
-            title="Refresh match data"
+            isLoading={isRefreshing}
           >
-            <RefreshCw
-              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </button>
-        </div>
+            <RefreshCw className="w-4 h-4" />
+            Refresh Match Data
+          </Button>
+        </motion.div>
 
-        {matchPhase === "results" && winner && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <Trophy className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-            <h2 className="text-xl font-bold text-gray-900">
-              Winner: {winner.username}!
-            </h2>
-          </div>
-        )}
-      </div>
+        <AnimatePresence>
+          {matchPhase === "results" && winner && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: -30 }}
+              transition={{ type: "spring", stiffness: 200 }}
+              className="mb-8"
+            >
+              <Card className="gradient-accent text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
+                <div className="relative z-10 text-center">
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatDelay: 2,
+                    }}
+                  >
+                    <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white mx-auto mb-4" />
+                  </motion.div>
+                  <Heading level={2} className="text-white mb-2">
+                    🏆 Winner: {winner.username}! 🏆
+                  </Heading>
+                  <Text className="text-white/90">
+                    Congratulations on advancing to the next round!
+                  </Text>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Prompt */}
-      <div className="card mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Creative Prompt
-          </h3>
-          {/* Admin Change Prompt Button - Only show during submission phase */}
-          {user?.is_admin && matchPhase === "submission" && (
-            <button
-              onClick={handleChangePrompt}
-              disabled={isChangingPrompt}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors disabled:opacity-50"
-              title="Generate a new random prompt"
-            >
-              {isChangingPrompt ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Shuffle className="w-4 h-4" />
-              )}
-              {isChangingPrompt ? "Changing..." : "New Prompt"}
-            </button>
-          )}
-        </div>
-        <p className="text-gray-700 text-lg italic">"{currentMatch.prompt}"</p>
-        {user?.is_admin && matchPhase === "submission" && (
-          <p className="text-xs text-gray-500 mt-2">
-            Admin: Click "New Prompt" to generate a different creative prompt
-            for this match
-          </p>
-        )}
-      </div>
-
-      {/* Match Content */}
-      {matchPhase === "submission" && (
-        <div className="space-y-8">
-          <div className="text-center">
-            <Clock className="w-8 h-8 text-primary-600 mx-auto mb-2" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Submission Phase
-            </h2>
-            <p className="text-gray-600">
-              Players are creating and submitting their images
-            </p>
-          </div>
-
-          {isUserParticipant() && !getCurrentUserSubmission() && (
-            <ImageSubmission matchId={currentMatch.id} />
-          )}
-
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="card">
-              <h4 className="font-semibold text-gray-900 mb-4">
-                {player1?.username}
-              </h4>
-              {player1Submission ? (
-                <div className="text-center">
-                  <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-green-600 font-medium">Submitted!</p>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">Waiting for submission...</p>
-                </div>
-              )}
-            </div>
-
-            <div className="card">
-              <h4 className="font-semibold text-gray-900 mb-4">
-                {player2?.username}
-              </h4>
-              {player2Submission ? (
-                <div className="text-center">
-                  <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-green-600 font-medium">Submitted!</p>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-500">Waiting for submission...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {matchPhase === "voting" && (
-        <div className="space-y-8">
-          <div className="text-center">
-            <Vote className="w-8 h-8 text-primary-600 mx-auto mb-2" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Voting Phase
-            </h2>
-            <p className="text-gray-600">
-              {canUserVote()
-                ? "Vote for your favorite image!"
-                : isUserParticipant()
-                ? "Other players are voting on your match"
-                : "You have already voted"}
-            </p>
-
-            {/* Admin End Voting Button */}
-            {user?.is_admin && (
-              <div className="mt-4">
-                <button
-                  onClick={endVoting}
-                  disabled={isEndingVoting}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 mx-auto"
-                >
-                  {isEndingVoting ? (
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
-                  {isEndingVoting
-                    ? "Ending Voting..."
-                    : "End Voting & Reveal Results"}
-                </button>
-                <p className="text-xs text-gray-500 mt-1">
-                  Admin only - Click to reveal votes and determine winner
-                </p>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8, duration: 0.5 }}
+        className="mb-8"
+      >
+        <Card className="relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-accent" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
+              <DarkAwareHeading
+                onDark={true}
+                level={3}
+                className="text-lg sm:text-xl"
+              >
+                Creative Prompt
+              </DarkAwareHeading>
+            </div>
+            {user?.is_admin && matchPhase === "submission" && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleChangePrompt}
+                isLoading={isChangingPrompt}
+              >
+                <Shuffle className="w-4 h-4" />
+                {isChangingPrompt ? "Changing..." : "New Prompt"}
+              </Button>
             )}
           </div>
-
-          {player1Submission && player2Submission && player1 && player2 ? (
-            <VotingInterface
-              matchId={currentMatch.id}
-              player1={player1}
-              player2={player2}
-              player1Submission={player1Submission}
-              player2Submission={player2Submission}
-              canVote={canUserVote()}
-              votes={votes}
-              showVoteCounts={user?.is_admin || false}
-              prompt={currentMatch.prompt}
-            />
-          ) : (
-            <div className="text-center py-8">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-3" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Waiting for Submissions
-                </h3>
-                <p className="text-gray-600">
-                  Both players need to submit their images before voting can begin.
-                </p>
-                {!player1Submission && (
-                  <p className="text-sm text-gray-500 mt-2">
-                    • Waiting for {player1?.username || "Player 1"}
-                  </p>
-                )}
-                {!player2Submission && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    • Waiting for {player2?.username || "Player 2"}
-                  </p>
-                )}
-              </div>
-            </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border-l-4 border-primary"
+          >
+            <Text className="text-lg sm:text-xl italic font-medium text-textcolor-primary leading-relaxed">
+              "{currentMatch.prompt}"
+            </Text>
+          </motion.div>
+          {user?.is_admin && matchPhase === "submission" && (
+            <Text variant="caption" color="secondary" className="mt-3">
+              Admin: Click "New Prompt" to generate a different creative prompt
+              for this match
+            </Text>
           )}
-        </div>
-      )}
+        </Card>
+      </motion.div>
 
-      {matchPhase === "results" && (
-        <div className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div
-              className={`card ${
-                winner?.id === player1?.id ? "border-green-500 bg-green-50" : ""
-              }`}
+      {/* Match Content */}
+      <AnimatePresence mode="wait">
+        {matchPhase === "submission" && (
+          <motion.div
+            key="submission"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-8"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-center"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-gray-900">
-                  {player1?.username}
-                </h4>
-                {winner?.id === player1?.id && (
-                  <Trophy className="w-5 h-5 text-yellow-600" />
-                )}
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary-600 rounded-full shadow-glow mb-4">
+                <Clock className="w-8 h-8 text-white" />
               </div>
-              {player1Submission && (
-                <div>
-                  <img
-                    src={player1Submission.image_url}
-                    alt={`${player1?.username}'s submission`}
-                    className="w-full h-64 object-cover rounded-lg mb-2"
-                  />
-                  <p className="text-sm text-gray-600">
-                    Votes: {getVoteCount(player1Submission.id)}
-                  </p>
-                </div>
-              )}
-            </div>
+              <Heading level={2} className="mb-2">
+                Submission Phase
+              </Heading>
+              <Text color="secondary" className="text-lg">
+                Players are creating and submitting their images
+              </Text>
+            </motion.div>
 
-            <div
-              className={`card ${
-                winner?.id === player2?.id ? "border-green-500 bg-green-50" : ""
-              }`}
+            {isUserParticipant() && !getCurrentUserSubmission() && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <ImageSubmission matchId={currentMatch.id} />
+              </motion.div>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="grid gap-6 md:grid-cols-2"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold text-gray-900">
-                  {player2?.username}
-                </h4>
-                {winner?.id === player2?.id && (
-                  <Trophy className="w-5 h-5 text-yellow-600" />
-                )}
-              </div>
-              {player2Submission && (
-                <div>
-                  <img
-                    src={player2Submission.image_url}
-                    alt={`${player2?.username}'s submission`}
-                    className="w-full h-64 object-cover rounded-lg mb-2"
-                  />
-                  <p className="text-sm text-gray-600">
-                    Votes: {getVoteCount(player2Submission.id)}
-                  </p>
+              <Card
+                className={`text-center ${
+                  player1Submission ? "border-accent shadow-glow-accent" : ""
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <DarkAwareHeading
+                    onDark={true}
+                    level={4}
+                    className="text-primary-800"
+                  >
+                    {player1?.username}
+                  </DarkAwareHeading>
                 </div>
+                {player1Submission ? (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center"
+                  >
+                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow-accent">
+                      <CheckCircle className="w-8 h-8 text-white" />
+                    </div>
+                    <DarkAwareText
+                      onDark={true}
+                      className="text-accent-600 font-semibold text-lg"
+                    >
+                      ✨ Submitted!
+                    </DarkAwareText>
+                  </motion.div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <Upload className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <Text color="secondary">Waiting for submission...</Text>
+                  </div>
+                )}
+              </Card>
+
+              <Card
+                className={`text-center ${
+                  player2Submission ? "border-accent shadow-glow-accent" : ""
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center">
+                    <Users className="w-5 h-5 text-white" />
+                  </div>
+                  <DarkAwareHeading
+                    onDark={true}
+                    level={4}
+                    className="text-accent-800"
+                  >
+                    {player2?.username}
+                  </DarkAwareHeading>
+                </div>
+                {player2Submission ? (
+                  <motion.div
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="text-center"
+                  >
+                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-glow-accent">
+                      <CheckCircle className="w-8 h-8 text-white" />
+                    </div>
+                    <DarkAwareText
+                      onDark={true}
+                      className="text-accent-600 font-semibold text-lg"
+                    >
+                      ✨ Submitted!
+                    </DarkAwareText>
+                  </motion.div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <Upload className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <Text color="secondary">Waiting for submission...</Text>
+                  </div>
+                )}
+              </Card>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {matchPhase === "voting" && (
+          <motion.div
+            key="voting"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-8"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="text-center"
+            >
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-secondary to-secondary-600 rounded-full shadow-glow-secondary mb-4">
+                <Vote className="w-8 h-8 text-white" />
+              </div>
+              <Heading level={2} className="mb-2">
+                Voting Phase
+              </Heading>
+              <Text color="secondary" className="text-lg">
+                {canUserVote()
+                  ? "Vote for your favorite image!"
+                  : isUserParticipant()
+                  ? "Other players are voting on your match"
+                  : "You have already voted"}
+              </Text>
+
+              {/* Admin End Voting Button */}
+              {user?.is_admin && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-6"
+                >
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={endVoting}
+                    isLoading={isEndingVoting}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    <Eye className="w-5 h-5" />
+                    {isEndingVoting
+                      ? "Ending Voting..."
+                      : "End Voting & Reveal Results"}
+                  </Button>
+                  <Text variant="caption" color="secondary" className="mt-2">
+                    Admin only - Click to reveal votes and determine winner
+                  </Text>
+                </motion.div>
               )}
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+
+            {player1Submission && player2Submission && player1 && player2 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <VotingInterface
+                  matchId={currentMatch.id}
+                  player1={player1}
+                  player2={player2}
+                  player1Submission={player1Submission}
+                  player2Submission={player2Submission}
+                  canVote={canUserVote()}
+                  votes={votes}
+                  showVoteCounts={user?.is_admin || false}
+                  prompt={currentMatch.prompt}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+                className="text-center py-8"
+              >
+                <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+                  <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Clock className="w-8 h-8 text-white" />
+                  </div>
+                  <Heading level={3} className="text-yellow-800 mb-2">
+                    Waiting for Submissions
+                  </Heading>
+                  <Text color="secondary" className="mb-4">
+                    Both players need to submit their images before voting can
+                    begin.
+                  </Text>
+                  <div className="space-y-2">
+                    {!player1Submission && (
+                      <Text variant="small" color="secondary">
+                        • Waiting for {player1?.username || "Player 1"}
+                      </Text>
+                    )}
+                    {!player2Submission && (
+                      <Text variant="small" color="secondary">
+                        • Waiting for {player2?.username || "Player 2"}
+                      </Text>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+
+        {matchPhase === "results" && (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-8"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="grid gap-6 md:grid-cols-2"
+            >
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card
+                  className={`relative overflow-hidden ${
+                    winner?.id === player1?.id
+                      ? "border-accent shadow-glow-accent bg-gradient-to-br from-accent-50 to-accent-100"
+                      : "hover:shadow-card"
+                  }`}
+                >
+                  {winner?.id === player1?.id && (
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-accent to-accent-600" />
+                  )}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <DarkAwareHeading
+                        onDark={winner?.id !== player1?.id}
+                        level={4}
+                        className={
+                          winner?.id === player1?.id ? "text-accent-800" : ""
+                        }
+                      >
+                        {player1?.username}
+                      </DarkAwareHeading>
+                    </div>
+                    {winner?.id === player1?.id && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{
+                          delay: 0.6,
+                          type: "spring",
+                          stiffness: 200,
+                        }}
+                        className="flex items-center gap-2 px-3 py-1 bg-accent rounded-full"
+                      >
+                        <Trophy className="w-4 h-4 text-white" />
+                        <Text
+                          variant="small"
+                          className="text-white font-semibold"
+                        >
+                          Winner
+                        </Text>
+                      </motion.div>
+                    )}
+                  </div>
+                  {player1Submission && (
+                    <div>
+                      <motion.img
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.8 }}
+                        src={player1Submission.image_url}
+                        alt={`${player1?.username}'s submission`}
+                        className="w-full h-64 object-cover rounded-xl mb-4 shadow-sm"
+                      />
+                      <div className="flex items-center justify-between">
+                        <Text variant="small" color="secondary">
+                          Votes: {getVoteCount(player1Submission.id)}
+                        </Text>
+                        {winner?.id === player1?.id && (
+                          <Text
+                            variant="small"
+                            className="text-accent-600 font-semibold"
+                          >
+                            🎉 Advanced!
+                          </Text>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card
+                  className={`relative overflow-hidden ${
+                    winner?.id === player2?.id
+                      ? "border-accent shadow-glow-accent bg-gradient-to-br from-accent-50 to-accent-100"
+                      : "hover:shadow-card"
+                  }`}
+                >
+                  {winner?.id === player2?.id && (
+                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-accent to-accent-600" />
+                  )}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <DarkAwareHeading
+                        onDark={winner?.id !== player2?.id}
+                        level={4}
+                        className={
+                          winner?.id === player2?.id ? "text-accent-800" : ""
+                        }
+                      >
+                        {player2?.username}
+                      </DarkAwareHeading>
+                    </div>
+                    {winner?.id === player2?.id && (
+                      <motion.div
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{
+                          delay: 0.6,
+                          type: "spring",
+                          stiffness: 200,
+                        }}
+                        className="flex items-center gap-2 px-3 py-1 bg-accent rounded-full"
+                      >
+                        <Trophy className="w-4 h-4 text-white" />
+                        <Text
+                          variant="small"
+                          className="text-white font-semibold"
+                        >
+                          Winner
+                        </Text>
+                      </motion.div>
+                    )}
+                  </div>
+                  {player2Submission && (
+                    <div>
+                      <motion.img
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.8 }}
+                        src={player2Submission.image_url}
+                        alt={`${player2?.username}'s submission`}
+                        className="w-full h-64 object-cover rounded-xl mb-4 shadow-sm"
+                      />
+                      <div className="flex items-center justify-between">
+                        <Text variant="small" color="secondary">
+                          Votes: {getVoteCount(player2Submission.id)}
+                        </Text>
+                        {winner?.id === player2?.id && (
+                          <Text
+                            variant="small"
+                            className="text-accent-600 font-semibold"
+                          >
+                            🎉 Advanced!
+                          </Text>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation */}
-      <div className="text-center mt-8">
-        <button
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+        className="text-center mt-12"
+      >
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={() => setCurrentView("tournament")}
-          className="btn-secondary"
+          className="w-full sm:w-auto"
         >
           Back to Tournament Bracket
-        </button>
-      </div>
+        </Button>
+      </motion.div>
 
       {/* Coin Toss Modal */}
-      {showCoinToss && player1 && player2 && (
-        <CoinToss
-          player1Name={player1.username}
-          player2Name={player2.username}
-          player1Id={player1.id}
-          player2Id={player2.id}
-          onComplete={handleCoinTossComplete}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {showCoinToss && player1 && player2 && (
+          <CoinToss
+            player1Name={player1.username}
+            player2Name={player2.username}
+            player1Id={player1.id}
+            player2Id={player2.id}
+            onComplete={handleCoinTossComplete}
+          />
+        )}
+      </AnimatePresence>
+    </Container>
   );
 };
