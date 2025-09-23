@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, Sparkles, Star, ArrowLeft, Share2 } from "lucide-react";
+import {
+  Trophy,
+  Crown,
+  Sparkles,
+  Star,
+  ArrowLeft,
+  Share2,
+  Settings,
+} from "lucide-react";
 import {
   Button,
   Card,
@@ -8,8 +16,11 @@ import {
   DarkAwareHeading,
   DarkAwareText,
   Heading,
+  LoadingSpinner,
 } from "../ui";
 import type { User } from "../../lib/supabase";
+import { TournamentService } from "../../services/tournamentService";
+import { useStore } from "../../store/useStore";
 
 interface WinnerScreenProps {
   champion: User;
@@ -20,8 +31,10 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
   champion,
   onBackToLobby,
 }) => {
+  const { user, currentTournament } = useStore();
   const [showConfetti, setShowConfetti] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
+  const [endingTournament, setEndingTournament] = useState(false);
 
   useEffect(() => {
     // Trigger confetti animation
@@ -35,6 +48,21 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
       clearTimeout(timer3);
     };
   }, []);
+
+  const handleEndTournament = async () => {
+    if (!currentTournament || !user?.is_admin) return;
+
+    setEndingTournament(true);
+    try {
+      await TournamentService.endTournament(currentTournament.id);
+      // The tournament status will be updated via the subscription
+      // and the app will automatically navigate back to lobby
+    } catch (error) {
+      console.error("Error ending tournament:", error);
+    } finally {
+      setEndingTournament(false);
+    }
+  };
 
   const confettiPieces = Array.from({ length: 50 }, (_, i) => ({
     id: i,
@@ -203,7 +231,9 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                 </div>
 
                 <DarkAwareText onDark={true} className="text-gray-600 text-lg">
-                  Congratulations on your victory!
+                  {user?.id === champion.id
+                    ? "Congratulations on your victory!"
+                    : "Won the tournament!"}
                 </DarkAwareText>
               </Card>
             </motion.div>
@@ -226,9 +256,9 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                       onDark={true}
                       className="text-lg text-gray-700 leading-relaxed"
                     >
-                      You've conquered the tournament and proven yourself as the
-                      ultimate creative champion! Your artistic vision and skill
-                      have earned you this well-deserved victory.
+                      {user?.id === champion.id
+                        ? "You've conquered the tournament and proven yourself as the ultimate creative champion! Your artistic vision and skill have earned you this well-deserved victory."
+                        : `${champion.username} has conquered the tournament and proven themselves as the ultimate creative champion! Thank you for participating and showcasing your creativity. Every submission made this tournament amazing!`}
                     </DarkAwareText>
                   </div>
                 </Card>
@@ -243,30 +273,79 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                className="space-y-4"
               >
-                <Button
-                  variant="ghost"
-                  size="lg"
-                  onClick={onBackToLobby}
-                  className="bg-white/90 hover:bg-white text-gray-800 border-0 shadow-lg"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  Back to Lobby
-                </Button>
+                {/* Admin Controls */}
+                {user?.is_admin &&
+                  currentTournament?.status === "in_progress" && (
+                    <div className="flex justify-center mb-6">
+                      <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl p-4">
+                        <div className="text-center mb-4">
+                          <Settings className="w-6 h-6 text-orange-500 mx-auto mb-2" />
+                          <DarkAwareHeading
+                            onDark={true}
+                            level={3}
+                            className="text-lg font-semibold text-gray-800"
+                          >
+                            Admin Controls
+                          </DarkAwareHeading>
+                          <DarkAwareText
+                            onDark={true}
+                            className="text-sm text-gray-600"
+                          >
+                            End this tournament and return all players to lobby
+                          </DarkAwareText>
+                        </div>
+                        <Button
+                          onClick={handleEndTournament}
+                          disabled={endingTournament}
+                          className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                          size="lg"
+                        >
+                          {endingTournament ? (
+                            <>
+                              <LoadingSpinner size="sm" />
+                              Ending Tournament...
+                            </>
+                          ) : (
+                            <>
+                              <Trophy className="w-5 h-5" />
+                              End Tournament
+                            </>
+                          )}
+                        </Button>
+                      </Card>
+                    </div>
+                  )}
 
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                  onClick={() => {
-                    // TODO: Implement share functionality
-                    console.log("Share victory");
-                  }}
-                >
-                  <Share2 className="w-5 h-5" />
-                  Share Victory
-                </Button>
+                {/* Regular Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    onClick={onBackToLobby}
+                    className="bg-white/90 hover:bg-white text-gray-800 border-0 shadow-lg"
+                    disabled={currentTournament?.status === "in_progress"}
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                    {currentTournament?.status === "in_progress"
+                      ? "Tournament Active"
+                      : "Back to Lobby"}
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
+                    onClick={() => {
+                      // TODO: Implement share functionality
+                      console.log("Share victory");
+                    }}
+                  >
+                    <Share2 className="w-5 h-5" />
+                    Share Victory
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

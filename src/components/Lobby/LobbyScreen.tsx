@@ -1,8 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Clock, Crown, Play, Users, RefreshCw } from "lucide-react";
+import {
+  Clock,
+  Crown,
+  Play,
+  Users,
+  RefreshCw,
+  Settings,
+  Bot,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
+import { TournamentSelection } from "../Tournament/TournamentSelection";
+import { BotService } from "../../services/botService";
 import {
   Button,
   Card,
@@ -13,6 +23,7 @@ import {
   DarkAwareHeading,
   DarkAwareText,
 } from "../ui";
+import type { Tournament } from "../../lib/supabase";
 
 export const LobbyScreen: React.FC = () => {
   const {
@@ -28,12 +39,16 @@ export const LobbyScreen: React.FC = () => {
   const [isJoining, setIsJoining] = useState(false);
   const [isLoadingTournament, setIsLoadingTournament] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const [isFilling, setIsFilling] = useState(false);
+  const [fillWithBots, setFillWithBots] = useState(false);
+  const [showTournamentSelection, setShowTournamentSelection] = useState(false);
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
     if (!isLoadingRef.current) {
       isLoadingRef.current = true;
-      loadTournament().finally(() => {
+      checkCurrentTournament().finally(() => {
         isLoadingRef.current = false;
       });
     }
@@ -51,24 +66,24 @@ export const LobbyScreen: React.FC = () => {
     }
   }, [currentTournament]);
 
-  const loadTournament = async () => {
+  const checkCurrentTournament = async () => {
     setIsLoadingTournament(true);
     try {
-      let tournament = await TournamentService.getCurrentTournament();
+      const tournament = await TournamentService.getCurrentTournament();
 
-      if (!tournament) {
-        tournament = await TournamentService.createTournament();
+      if (tournament) {
+        setCurrentTournament(tournament);
+        const tournamentParticipants =
+          await TournamentService.getTournamentParticipants(tournament.id);
+        setParticipants(tournamentParticipants);
+      } else {
+        // No active tournament, show tournament selection
+        setShowTournamentSelection(true);
       }
-
-      setCurrentTournament(tournament);
-
-      const tournamentParticipants =
-        await TournamentService.getTournamentParticipants(tournament.id);
-      setParticipants(tournamentParticipants);
     } catch (error) {
-      console.error("Failed to load tournament:", error);
+      console.error("Failed to check tournament:", error);
       setError(
-        error instanceof Error ? error.message : "Failed to load tournament"
+        error instanceof Error ? error.message : "Failed to check tournament"
       );
     } finally {
       setIsLoadingTournament(false);
@@ -117,15 +132,49 @@ export const LobbyScreen: React.FC = () => {
   };
 
   const startTournament = async () => {
-    if (!currentTournament) return;
+    if (!currentTournament || !user?.is_admin) return;
 
+    setIsStarting(true);
     try {
-      await TournamentService.startTournament(currentTournament.id);
+      await TournamentService.startTournament(
+        currentTournament.id,
+        fillWithBots
+      );
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to start tournament"
       );
+    } finally {
+      setIsStarting(false);
     }
+  };
+
+  const fillTournamentWithBots = async () => {
+    if (!currentTournament || !user?.is_admin) return;
+
+    setIsFilling(true);
+    try {
+      await TournamentService.fillTournamentWithBots(currentTournament.id);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Failed to fill tournament with bots"
+      );
+    } finally {
+      setIsFilling(false);
+    }
+  };
+
+  const handleTournamentSelected = (tournament: Tournament) => {
+    setCurrentTournament(tournament);
+    setShowTournamentSelection(false);
+  };
+
+  const handleBackToSelection = () => {
+    setCurrentTournament(null);
+    setParticipants([]);
+    setShowTournamentSelection(true);
   };
 
   const refreshParticipants = async () => {
@@ -149,7 +198,8 @@ export const LobbyScreen: React.FC = () => {
   };
 
   const renderParticipantGrid = () => {
-    const slots = Array.from({ length: 16 }, (_, i) => {
+    const tournamentSize = currentTournament?.tournament_size || 16;
+    const slots = Array.from({ length: tournamentSize }, (_, i) => {
       const participant = participants[i];
       return (
         <motion.div
@@ -173,11 +223,31 @@ export const LobbyScreen: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-center"
               >
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm ${
+                    BotService.isBot(participant)
+                      ? "bg-gradient-to-br from-orange-400 to-orange-600"
+                      : "bg-gradient-to-br from-primary to-primary-600"
+                  }`}
+                >
+                  {BotService.isBot(participant) ? (
+                    <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  ) : (
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  )}
                 </div>
                 <p className="text-xs sm:text-sm font-semibold text-textcolor-primary truncate px-1">
-                  {participant.username}
+                  {BotService.isBot(participant) ? (
+                    <span className="flex items-center justify-center gap-1">
+                      <span className="text-xs">🤖</span>
+                      {participant.username.replace(
+                        /^AI_|^CreativeBot_|^PixelMaster_|_\d+$/g,
+                        ""
+                      )}
+                    </span>
+                  ) : (
+                    participant.username
+                  )}
                 </p>
               </motion.div>
             </AnimatePresence>
@@ -207,6 +277,13 @@ export const LobbyScreen: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner size="lg" text="Loading tournament..." />
       </div>
+    );
+  }
+
+  // Show tournament selection if no current tournament
+  if (showTournamentSelection || !currentTournament) {
+    return (
+      <TournamentSelection onTournamentSelected={handleTournamentSelected} />
     );
   }
 
@@ -246,7 +323,8 @@ export const LobbyScreen: React.FC = () => {
               level={2}
               className="text-xl sm:text-2xl"
             >
-              Players ({participants.length}/16)
+              Players ({participants.length}/
+              {currentTournament?.tournament_size || 16})
             </DarkAwareHeading>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
               <Button
@@ -279,11 +357,15 @@ export const LobbyScreen: React.FC = () => {
                 size="lg"
                 onClick={joinTournament}
                 isLoading={isJoining}
-                disabled={participants.length >= 16}
+                disabled={
+                  participants.length >=
+                  (currentTournament?.tournament_size || 16)
+                }
                 className="w-full sm:w-auto"
               >
                 <Play className="w-5 h-5" />
-                {participants.length >= 16
+                {participants.length >=
+                (currentTournament?.tournament_size || 16)
                   ? "Tournament Full"
                   : "Join Tournament"}
               </Button>
@@ -307,15 +389,113 @@ export const LobbyScreen: React.FC = () => {
                   </Text>
                 </motion.div>
 
-                {participants.length >= 2 && (
+                {/* Admin Controls */}
+                {user?.is_admin && participants.length >= 2 && (
+                  <div className="space-y-4">
+                    {/* Admin Options */}
+                    {participants.length <
+                      currentTournament?.tournament_size && (
+                      <Card className="bg-orange-50 border-orange-200 p-4">
+                        <div className="text-center mb-4">
+                          <Bot className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+                          <DarkAwareHeading
+                            onDark={true}
+                            level={3}
+                            className="text-lg font-semibold text-orange-800"
+                          >
+                            Admin Controls
+                          </DarkAwareHeading>
+                          <DarkAwareText
+                            onDark={true}
+                            className="text-sm text-orange-700"
+                          >
+                            Tournament needs{" "}
+                            {(currentTournament?.tournament_size || 16) -
+                              participants.length}{" "}
+                            more players
+                          </DarkAwareText>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Button
+                            onClick={fillTournamentWithBots}
+                            disabled={isFilling}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                            size="sm"
+                          >
+                            {isFilling ? (
+                              <>
+                                <LoadingSpinner size="sm" />
+                                Adding Bots...
+                              </>
+                            ) : (
+                              <>
+                                <Bot className="w-4 h-4" />
+                                Fill with Bots (
+                                {(currentTournament?.tournament_size || 16) -
+                                  participants.length}{" "}
+                                needed)
+                              </>
+                            )}
+                          </Button>
+
+                          <div className="flex items-center gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              id="fillWithBots"
+                              checked={fillWithBots}
+                              onChange={(e) =>
+                                setFillWithBots(e.target.checked)
+                              }
+                              className="rounded border-orange-300 text-orange-600 focus:ring-orange-500"
+                            />
+                            <label
+                              htmlFor="fillWithBots"
+                              className="text-orange-700 cursor-pointer"
+                            >
+                              Auto-fill with bots when starting
+                            </label>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+
+                    {/* Start Tournament Button */}
+                    {(participants.length ===
+                      currentTournament?.tournament_size ||
+                      fillWithBots) && (
+                      <Button
+                        variant="accent"
+                        size="lg"
+                        onClick={startTournament}
+                        isLoading={isStarting}
+                        className="w-full sm:w-auto"
+                      >
+                        <Crown className="w-5 h-5" />
+                        {fillWithBots &&
+                        participants.length <
+                          (currentTournament?.tournament_size || 16)
+                          ? `Start Tournament (${
+                              participants.length
+                            } players + ${
+                              (currentTournament?.tournament_size || 16) -
+                              participants.length
+                            } bots)`
+                          : `Start Tournament (${participants.length} players)`}
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {participants.length > 0 && (
                   <Button
-                    variant="accent"
-                    size="lg"
-                    onClick={startTournament}
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBackToSelection}
                     className="w-full sm:w-auto"
                   >
-                    <Crown className="w-5 h-5" />
-                    Start Tournament ({participants.length} players)
+                    <Settings className="w-4 h-4" />
+                    Choose Different Tournament
                   </Button>
                 )}
               </div>

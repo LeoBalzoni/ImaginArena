@@ -3,6 +3,7 @@ import { Trophy, Users, Crown, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
+import { BotService } from "../../services/botService";
 import { Button, Card, Container, Heading, Text, LoadingSpinner } from "../ui";
 import type { Match, User } from "../../lib/supabase";
 
@@ -73,7 +74,7 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
                 : "text-textcolor-primary"
             }`}
           >
-            {player1?.username || "Player 1"}
+            {player1 ? BotService.getBotDisplayName(player1) : "Player 1"}
           </Text>
           {winner?.id === player1?.id && (
             <motion.div
@@ -109,7 +110,7 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
                 : "text-textcolor-primary"
             }`}
           >
-            {player2?.username || "Player 2"}
+            {player2 ? BotService.getBotDisplayName(player2) : "Player 2"}
           </Text>
           {winner?.id === player2?.id && (
             <motion.div
@@ -347,7 +348,7 @@ export const TournamentBracket: React.FC = () => {
                   🎉 Tournament Champion! 🎉
                 </Heading>
                 <Text className="text-xl sm:text-2xl font-bold text-white">
-                  {champion.username}
+                  {BotService.getBotDisplayName(champion)}
                 </Text>
               </div>
             </Card>

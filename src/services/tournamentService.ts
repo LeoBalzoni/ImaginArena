@@ -2,16 +2,22 @@ import { supabase } from "../lib/supabase";
 import type { Tournament, Match, User } from "../lib/supabase";
 import { useStore } from "../store/useStore";
 import { getRandomPrompt } from "../data/prompts";
+import { BotService } from "./botService";
 
 export class TournamentService {
   /**
    * Create a new tournament
    */
-  static async createTournament(): Promise<Tournament> {
+  static async createTournament(
+    tournamentSize: 2 | 4 | 8 | 16 | 32 = 16,
+    createdBy?: string
+  ): Promise<Tournament> {
     const { data, error } = await supabase
       .from("tournaments")
       .insert({
         status: "lobby",
+        tournament_size: tournamentSize,
+        created_by: createdBy,
       })
       .select()
       .single();
@@ -34,6 +40,20 @@ export class TournamentService {
 
     if (error) throw error;
     return data;
+  }
+
+  /**
+   * Get all available tournaments (lobby status)
+   */
+  static async getAvailableTournaments(): Promise<Tournament[]> {
+    const { data, error } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("status", "lobby")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 
   /**
@@ -79,19 +99,84 @@ export class TournamentService {
   }
 
   /**
-   * Start tournament (create matches)
+   * Fill tournament with bots to reach target size - Admin only
    */
-  static async startTournament(tournamentId: string): Promise<void> {
-    // Get participants
+  static async fillTournamentWithBots(tournamentId: string): Promise<void> {
+    // Get tournament info
+    const { data: tournament, error: tournamentError } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", tournamentId)
+      .single();
+
+    if (tournamentError) throw tournamentError;
+    if (!tournament) throw new Error("Tournament not found");
+
+    // Get current participants
     const participants = await this.getTournamentParticipants(tournamentId);
+
+    if (participants.length >= tournament.tournament_size) {
+      throw new Error("Tournament is already full");
+    }
+
+    // Fill with bots
+    await BotService.fillTournamentWithBots(
+      tournamentId,
+      participants.length,
+      tournament.tournament_size
+    );
+
+    // Update participants in store
+    const { setParticipants } = useStore.getState();
+    const updatedParticipants = await this.getTournamentParticipants(
+      tournamentId
+    );
+    setParticipants(updatedParticipants);
+
+    return;
+  }
+
+  /**
+   * Start tournament (create matches) - Admin only
+   */
+  static async startTournament(
+    tournamentId: string,
+    fillWithBots: boolean = false
+  ): Promise<void> {
+    // Get tournament info
+    const { data: tournament, error: tournamentError } = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", tournamentId)
+      .single();
+
+    if (tournamentError) throw tournamentError;
+    if (!tournament) throw new Error("Tournament not found");
+
+    // Get participants
+    let participants = await this.getTournamentParticipants(tournamentId);
 
     if (participants.length < 2) {
       throw new Error("Tournament needs at least 2 participants to start");
     }
 
-    // For tournaments with less than 16 players, we'll pad with byes or adjust bracket size
-    if (participants.length > 16) {
-      throw new Error("Tournament cannot have more than 16 participants");
+    // If fillWithBots is true and we don't have enough participants, fill with bots
+    if (fillWithBots && participants.length < tournament.tournament_size) {
+      await this.fillTournamentWithBots(tournamentId);
+      participants = await this.getTournamentParticipants(tournamentId);
+    }
+
+    // Check if we have the right number of participants for the tournament size
+    if (participants.length !== tournament.tournament_size) {
+      throw new Error(
+        `Tournament requires exactly ${
+          tournament.tournament_size
+        } participants, but has ${participants.length}. ${
+          !fillWithBots
+            ? "Enable 'Fill with Bots' to start with fewer players."
+            : ""
+        }`
+      );
     }
 
     // Shuffle participants for random matchups
@@ -184,25 +269,10 @@ export class TournamentService {
     const allRoundMatches = matches.filter((m) => m.round === latestRound);
     if (latestRoundMatches.length !== allRoundMatches.length) return;
 
-    // If only one winner left, tournament is finished
+    // If only one winner left, tournament final is complete but don't auto-finish
+    // Admin will manually end the tournament from the winner screen
     if (latestRoundMatches.length === 1) {
-      await supabase
-        .from("tournaments")
-        .update({ status: "finished" })
-        .eq("id", tournamentId);
-
-      // Manually update the store to ensure UI updates immediately
-      const { setCurrentTournament } = useStore.getState();
-      const updatedTournament = await supabase
-        .from("tournaments")
-        .select("*")
-        .eq("id", tournamentId)
-        .single();
-
-      if (updatedTournament.data) {
-        setCurrentTournament(updatedTournament.data);
-      }
-
+      // Tournament stays in "in_progress" status until admin manually ends it
       return;
     }
 
@@ -390,5 +460,32 @@ export class TournamentService {
       }
       supabase.removeChannel(tournamentSubscription);
     };
+  }
+
+  /**
+   * End tournament manually (Admin only)
+   */
+  static async endTournament(tournamentId: string): Promise<void> {
+    const { error } = await supabase
+      .from("tournaments")
+      .update({
+        status: "finished",
+        admin_ended: true,
+      })
+      .eq("id", tournamentId);
+
+    if (error) throw error;
+
+    // Manually update the store to ensure UI updates immediately
+    const { setCurrentTournament } = useStore.getState();
+    const updatedTournament = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", tournamentId)
+      .single();
+
+    if (updatedTournament.data) {
+      setCurrentTournament(updatedTournament.data);
+    }
   }
 }

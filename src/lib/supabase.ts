@@ -26,12 +26,16 @@ export interface User {
   id: string;
   username: string;
   is_admin: boolean;
+  is_bot: boolean;
   created_at: string;
 }
 
 export interface Tournament {
   id: string;
   status: "lobby" | "in_progress" | "finished";
+  tournament_size: 2 | 4 | 8 | 16 | 32;
+  admin_ended: boolean;
+  created_by?: string;
   created_at: string;
 }
 

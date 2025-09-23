@@ -31,16 +31,46 @@ function App() {
 
   // Get tournament champion
   const getChampion = () => {
-    if (currentTournament?.status !== "finished" || !matches.length)
-      return null;
+    if (!matches.length || !currentTournament) return null;
 
-    const finalMatch = matches.find(
-      (match) => match.round === 1 && match.winner_id
+    // Calculate the expected final round based on tournament size
+    const tournamentSize = currentTournament.tournament_size || 16;
+    const expectedFinalRound = Math.log2(tournamentSize);
+
+    // Find completed matches
+    const completedMatches = matches.filter((match) => match.winner_id);
+    if (completedMatches.length === 0) return null;
+
+    // Check if we have a completed match in the final round
+    const finalRoundMatches = completedMatches.filter(
+      (m) => m.round === expectedFinalRound
     );
 
-    if (!finalMatch?.winner_id) return null;
+    // The tournament is complete when there's exactly one completed match in the final round
+    if (finalRoundMatches.length !== 1) return null;
 
+    const finalMatch = finalRoundMatches[0];
     return participants.find((p) => p.id === finalMatch.winner_id) || null;
+  };
+
+  // Check if tournament has a champion (final match completed)
+  const hasTournamentChampion = () => {
+    if (!matches.length || !currentTournament) return false;
+
+    // Calculate the expected final round based on tournament size
+    const tournamentSize = currentTournament.tournament_size || 16;
+    const expectedFinalRound = Math.log2(tournamentSize);
+
+    // Find completed matches in the final round
+    const completedMatches = matches.filter((match) => match.winner_id);
+    if (completedMatches.length === 0) return false;
+
+    const finalRoundMatches = completedMatches.filter(
+      (m) => m.round === expectedFinalRound
+    );
+
+    // Tournament has a champion when there's exactly one completed match in the final round
+    return finalRoundMatches.length === 1;
   };
 
   const champion = getChampion();
@@ -63,12 +93,17 @@ function App() {
       if (currentTournament.status === "lobby") {
         setCurrentView("lobby");
       } else if (currentTournament.status === "in_progress") {
-        setCurrentView("tournament");
+        // Show winner screen if tournament has a champion, otherwise show tournament bracket
+        if (hasTournamentChampion()) {
+          setCurrentView("results");
+        } else {
+          setCurrentView("tournament");
+        }
       } else if (currentTournament.status === "finished") {
         setCurrentView("results");
       }
     }
-  }, [isAuthenticated, user, currentTournament, setCurrentView]);
+  }, [isAuthenticated, user, currentTournament, matches, setCurrentView]);
 
   // Show loading spinner during initial load
   if (isLoading) {

@@ -1,11 +1,12 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Users table (extends Supabase auth.users)
+-- Users table (extends Supabase auth.users for real users, standalone for bots)
 CREATE TABLE users (
-  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   username TEXT UNIQUE NOT NULL,
   is_admin BOOLEAN DEFAULT FALSE,
+  is_bot BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -13,6 +14,9 @@ CREATE TABLE users (
 CREATE TABLE tournaments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   status TEXT CHECK (status IN ('lobby', 'in_progress', 'finished')) DEFAULT 'lobby',
+  tournament_size INTEGER CHECK (tournament_size IN (2, 4, 8, 16, 32)) DEFAULT 16,
+  admin_ended BOOLEAN DEFAULT FALSE,
+  created_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -67,8 +71,22 @@ ALTER TABLE tournament_participants ENABLE ROW LEVEL SECURITY;
 
 -- Users policies
 CREATE POLICY "Users can view all users" ON users FOR SELECT USING (true);
-CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON users FOR UPDATE USING (auth.uid() = id AND is_bot = false);
+CREATE POLICY "Users can insert own profile" ON users FOR INSERT WITH CHECK (auth.uid() = id AND is_bot = false);
+CREATE POLICY "Admins can create bot users" ON users FOR INSERT WITH CHECK (
+  is_bot = true AND EXISTS (
+    SELECT 1 FROM users admin_user
+    WHERE admin_user.id = auth.uid() 
+    AND admin_user.is_admin = true
+  )
+);
+CREATE POLICY "Admins can update bot users" ON users FOR UPDATE USING (
+  is_bot = true AND EXISTS (
+    SELECT 1 FROM users admin_user
+    WHERE admin_user.id = auth.uid() 
+    AND admin_user.is_admin = true
+  )
+);
 CREATE POLICY "Admins can delete users" ON users FOR DELETE USING (
   EXISTS (
     SELECT 1 FROM users admin_user
@@ -105,14 +123,27 @@ CREATE POLICY "Users can create own votes" ON votes FOR INSERT WITH CHECK (auth.
 
 -- Tournament participants policies
 CREATE POLICY "Anyone can view participants" ON tournament_participants FOR SELECT USING (true);
-CREATE POLICY "Users can join tournaments" ON tournament_participants FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can join tournaments" ON tournament_participants FOR INSERT WITH CHECK (
+  auth.uid() = user_id AND EXISTS (
+    SELECT 1 FROM users WHERE id = user_id AND is_bot = false
+  )
+);
+CREATE POLICY "Admins can add bot users to tournaments" ON tournament_participants FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM users bot_user WHERE bot_user.id = user_id AND bot_user.is_bot = true
+  ) AND EXISTS (
+    SELECT 1 FROM users admin_user
+    WHERE admin_user.id = auth.uid() 
+    AND admin_user.is_admin = true
+  )
+);
 
 -- Functions for tournament management
 CREATE OR REPLACE FUNCTION get_tournament_participants(tournament_uuid UUID)
-RETURNS TABLE(id UUID, username TEXT, created_at TIMESTAMP WITH TIME ZONE) AS $$
+RETURNS TABLE(id UUID, username TEXT, is_bot BOOLEAN, created_at TIMESTAMP WITH TIME ZONE) AS $$
 BEGIN
   RETURN QUERY
-  SELECT u.id, u.username, u.created_at
+  SELECT u.id, u.username, u.is_bot, u.created_at
   FROM tournament_participants tp
   JOIN users u ON tp.user_id = u.id
   WHERE tp.tournament_id = tournament_uuid
