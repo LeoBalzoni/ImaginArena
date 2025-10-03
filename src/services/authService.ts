@@ -108,7 +108,14 @@ export class AuthService {
     // If user was created successfully, create their profile
     if (data.user) {
       try {
-        await AuthService.createOrUpdateProfile(data.user.id, username);
+        const profile = await AuthService.createOrUpdateProfile(
+          data.user.id,
+          username
+        );
+
+        // Immediately set the user in the store to prevent UsernameSetup from showing
+        const { setUser } = useStore.getState();
+        setUser(profile);
       } catch (profileError) {
         console.error("Failed to create user profile:", profileError);
 

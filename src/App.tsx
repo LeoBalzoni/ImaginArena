@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import { useStore } from "./store/useStore";
 import { AuthService } from "./services/authService";
 import { LoginForm } from "./components/Auth/LoginForm";
-import { UsernameSetup } from "./components/Auth/UsernameSetup";
 import { LobbyScreen } from "./components/Lobby/LobbyScreen";
 import { TournamentBracket } from "./components/Tournament/TournamentBracket";
 import { WinnerScreen } from "./components/Tournament/WinnerScreen";
@@ -117,20 +116,11 @@ function App() {
     );
   }
 
-  // Show login form if not authenticated
-  if (!isAuthenticated) {
+  // Show login form if not authenticated or no user profile
+  if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
         <LoginForm />
-      </div>
-    );
-  }
-
-  // Show username setup if authenticated but no user profile
-  if (isAuthenticated && !user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
-        <UsernameSetup />
       </div>
     );
   }
