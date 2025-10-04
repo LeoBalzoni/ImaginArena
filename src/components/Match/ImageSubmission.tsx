@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { Upload, Image as ImageIcon, Loader2, X } from "lucide-react";
 import { MatchService } from "../../services/matchService";
 import { useStore } from "../../store/useStore";
+import { DarkAwareText } from "../ui";
 
 interface ImageSubmissionProps {
   matchId: string;
@@ -84,8 +85,10 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
 
   return (
     <div className="card">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Submit Your Image
+      <h3 className="mb-4">
+        <DarkAwareText className="text-lg font-semibold" onDark={true}>
+          Submit Your Image
+        </DarkAwareText>
       </h3>
 
       {!selectedFile ? (
@@ -96,9 +99,9 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-lg font-medium text-gray-900 mb-2">
+          <DarkAwareText className="text-lg font-medium mb-2" onDark={true}>
             Drop your image here, or click to browse
-          </p>
+          </DarkAwareText>
           <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
           <input
             ref={fileInputRef}

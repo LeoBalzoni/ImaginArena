@@ -221,7 +221,6 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                 <div className="flex items-center justify-center gap-3 mb-4">
                   <Crown className="w-8 h-8 text-yellow-500" />
                   <DarkAwareHeading
-                    onDark={true}
                     level={2}
                     className="text-2xl sm:text-3xl text-gray-800"
                   >
@@ -230,7 +229,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                   <Crown className="w-8 h-8 text-yellow-500" />
                 </div>
 
-                <DarkAwareText onDark={true} className="text-gray-600 text-lg">
+                <DarkAwareText className="text-gray-600 text-lg">
                   {user?.id === champion.id
                     ? "Congratulations on your victory!"
                     : "Won the tournament!"}
@@ -252,10 +251,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                 <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl max-w-2xl mx-auto">
                   <div className="text-center">
                     <Sparkles className="w-8 h-8 text-accent mx-auto mb-4" />
-                    <DarkAwareText
-                      onDark={true}
-                      className="text-lg text-gray-700 leading-relaxed"
-                    >
+                    <DarkAwareText className="text-lg text-gray-700 leading-relaxed">
                       {user?.id === champion.id
                         ? "You've conquered the tournament and proven yourself as the ultimate creative champion! Your artistic vision and skill have earned you this well-deserved victory."
                         : `${champion.username} has conquered the tournament and proven themselves as the ultimate creative champion! Thank you for participating and showcasing your creativity. Every submission made this tournament amazing!`}
@@ -282,17 +278,13 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                       <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl p-4">
                         <div className="text-center mb-4">
                           <Settings className="w-6 h-6 text-orange-500 mx-auto mb-2" />
-                          <DarkAwareHeading
-                            onDark={true}
+                          <Heading
                             level={3}
                             className="text-lg font-semibold text-gray-800"
                           >
                             Admin Controls
-                          </DarkAwareHeading>
-                          <DarkAwareText
-                            onDark={true}
-                            className="text-sm text-gray-600"
-                          >
+                          </Heading>
+                          <DarkAwareText className="text-sm text-gray-600">
                             End this tournament and return all players to lobby
                           </DarkAwareText>
                         </div>
