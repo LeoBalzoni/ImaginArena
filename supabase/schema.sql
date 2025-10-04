@@ -15,6 +15,7 @@ CREATE TABLE tournaments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   status TEXT CHECK (status IN ('lobby', 'in_progress', 'finished')) DEFAULT 'lobby',
   tournament_size INTEGER CHECK (tournament_size IN (2, 4, 8, 16, 32)) DEFAULT 16,
+  language TEXT CHECK (language IN ('en', 'it')) DEFAULT 'en',
   admin_ended BOOLEAN DEFAULT FALSE,
   created_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -148,45 +149,6 @@ BEGIN
   JOIN users u ON tp.user_id = u.id
   WHERE tp.tournament_id = tournament_uuid
   ORDER BY tp.joined_at;
-END;
-$$ LANGUAGE plpgsql;
-
--- Function to create tournament matches
-CREATE OR REPLACE FUNCTION create_tournament_matches(tournament_uuid UUID, participants UUID[])
-RETURNS VOID AS $$
-DECLARE
-  i INTEGER;
-  match_prompt TEXT;
-  num_participants INTEGER;
-  num_matches INTEGER;
-  prompts TEXT[] := ARRAY[
-    'A magical forest at sunset with glowing mushrooms',
-    'A cyberpunk city street in the rain at night',
-    'A cozy cabin in the mountains during winter',
-    'An underwater palace with colorful coral gardens',
-    'A steampunk airship floating above the clouds',
-    'A desert oasis with ancient ruins in the background',
-    'A space station orbiting a distant planet',
-    'A medieval castle on a cliff overlooking the ocean'
-  ];
-BEGIN
-  num_participants := array_length(participants, 1);
-  num_matches := num_participants / 2;
-  
-  -- Create first round matches based on number of participants
-  FOR i IN 1..num_matches LOOP
-    -- Select random prompt
-    match_prompt := prompts[1 + (random() * (array_length(prompts, 1) - 1))::INTEGER];
-    
-    INSERT INTO matches (tournament_id, round, player1_id, player2_id, prompt)
-    VALUES (
-      tournament_uuid,
-      1,
-      participants[i * 2 - 1],
-      participants[i * 2],
-      match_prompt
-    );
-  END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 

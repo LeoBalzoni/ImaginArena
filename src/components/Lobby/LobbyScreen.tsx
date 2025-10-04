@@ -306,9 +306,26 @@ export const LobbyScreen: React.FC = () => {
         <Heading level={1} className="mb-3">
           ImaginArena
         </Heading>
-        <Text variant="body" className="text-lg sm:text-xl">
-          Tournament Lobby
-        </Text>
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <Text variant="body" className="text-lg sm:text-xl">
+            Tournament Lobby
+          </Text>
+          {currentTournament && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+              className="flex items-center gap-2 bg-gradient-to-r from-primary-50 to-secondary-50 border-2 border-primary-200 rounded-full px-4 py-2 shadow-sm"
+            >
+              <Text className="font-medium text-primary-700">
+                Prompt language:
+              </Text>
+              <span className="text-2xl">
+                {currentTournament.language === "it" ? "🇮🇹" : "🇬🇧"}
+              </span>
+            </motion.div>
+          )}
+        </div>
       </motion.div>
 
       <motion.div

@@ -30,7 +30,7 @@ export const Header: React.FC = () => {
 
     switch (currentTournament.status) {
       case "lobby":
-        return `Lobby (${participants.length}/16 players)`;
+        return `Lobby (${participants.length}/${currentTournament.tournament_size} players)`;
       case "in_progress":
         return "Tournament in progress";
       case "finished":

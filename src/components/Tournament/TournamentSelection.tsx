@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Users, Plus, Play, Clock, Trophy } from "lucide-react";
+import { Users, Plus, Play, Clock, Trophy, Globe } from "lucide-react";
 import {
   Button,
   Card,
@@ -28,6 +28,7 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "it">("en");
 
   const loadTournaments = async () => {
     try {
@@ -62,6 +63,7 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
     try {
       const tournament = await TournamentService.createTournament(
         size,
+        selectedLanguage,
         user.id
       );
       await TournamentService.joinTournament(tournament.id, user.id);
@@ -142,6 +144,35 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
               <Plus className="w-5 h-5" />
               Create New Tournament (Admin)
             </DarkAwareHeading>
+
+            {/* Language Toggle */}
+            <div className="mb-4 flex items-center gap-3">
+              <Globe className="w-5 h-5 text-textcolor-secondary" />
+              <DarkAwareText className="font-medium" onDark={true}>
+                Language:
+              </DarkAwareText>
+              <div className="flex gap-2">
+                <Button
+                  variant={selectedLanguage === "en" ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedLanguage("en")}
+                  disabled={creating}
+                  className="min-w-[80px]"
+                >
+                  🇬🇧 English
+                </Button>
+                <Button
+                  variant={selectedLanguage === "it" ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedLanguage("it")}
+                  disabled={creating}
+                  className="min-w-[80px]"
+                >
+                  🇮🇹 Italiano
+                </Button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {[2, 4, 8, 16, 32].map((size) => (
                 <Button
@@ -208,12 +239,17 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
                           {getTournamentSizeIcon(tournament.tournament_size)}
                         </span>
                         <div>
-                          <DarkAwareHeading
-                            level={3}
-                            className="text-lg font-semibold"
-                          >
-                            {tournament.tournament_size}-Player Tournament
-                          </DarkAwareHeading>
+                          <div className="flex items-center gap-2">
+                            <DarkAwareHeading
+                              level={3}
+                              className="text-lg font-semibold"
+                            >
+                              {tournament.tournament_size}-Player Tournament
+                            </DarkAwareHeading>
+                            <span className="text-lg">
+                              {tournament.language === "it" ? "🇮🇹" : "🇬🇧"}
+                            </span>
+                          </div>
                           <div className="flex items-center gap-2 text-sm text-textcolor-secondary">
                             <Clock className="w-4 h-4" />
                             {new Date(

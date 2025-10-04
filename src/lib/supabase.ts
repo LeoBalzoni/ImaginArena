@@ -34,6 +34,7 @@ export interface Tournament {
   id: string;
   status: "lobby" | "in_progress" | "finished";
   tournament_size: 2 | 4 | 8 | 16 | 32;
+  language: "en" | "it";
   admin_ended: boolean;
   created_by?: string;
   created_at: string;

@@ -232,8 +232,17 @@ export class MatchService {
       throw new Error("Match not found");
     }
 
+    // Get tournament to check language
+    const { data: tournament } = await supabase
+      .from("tournaments")
+      .select("language")
+      .eq("id", currentMatch.tournament_id)
+      .single();
+
+    const language = tournament?.language || "en";
+
     // Get a new random prompt that's different from the current one
-    const newPrompt = getRandomPromptExcluding(currentMatch.prompt);
+    const newPrompt = getRandomPromptExcluding(currentMatch.prompt, language);
 
     // Update the match with the new prompt
     const { error } = await supabase

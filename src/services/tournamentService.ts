@@ -10,6 +10,7 @@ export class TournamentService {
    */
   static async createTournament(
     tournamentSize: 2 | 4 | 8 | 16 | 32 = 16,
+    language: "en" | "it" = "en",
     createdBy?: string
   ): Promise<Tournament> {
     const { data, error } = await supabase
@@ -17,6 +18,7 @@ export class TournamentService {
       .insert({
         status: "lobby",
         tournament_size: tournamentSize,
+        language: language,
         created_by: createdBy,
       })
       .select()
@@ -183,18 +185,27 @@ export class TournamentService {
     const shuffledParticipants = [...participants].sort(
       () => Math.random() - 0.5
     );
-    const participantIds = shuffledParticipants.map((p) => p.id);
 
-    // Create matches using the database function
-    const { error: matchError } = await supabase.rpc(
-      "create_tournament_matches",
-      {
-        tournament_uuid: tournamentId,
-        participants: participantIds,
-      }
-    );
+    // Get tournament language for prompts
+    const language = tournament.language || "en";
 
-    if (matchError) throw matchError;
+    // Create first round matches manually to respect language setting
+    const numMatches = shuffledParticipants.length / 2;
+    for (let i = 0; i < numMatches; i++) {
+      const player1 = shuffledParticipants[i * 2];
+      const player2 = shuffledParticipants[i * 2 + 1];
+      const randomPrompt = getRandomPrompt(language);
+
+      const { error: matchError } = await supabase.from("matches").insert({
+        tournament_id: tournamentId,
+        round: 1,
+        player1_id: player1.id,
+        player2_id: player2.id,
+        prompt: randomPrompt,
+      });
+
+      if (matchError) throw matchError;
+    }
 
     // Update tournament status
     const { error: updateError } = await supabase
@@ -280,9 +291,18 @@ export class TournamentService {
     const winners = latestRoundMatches.map((m) => m.winner_id).filter(Boolean);
     const nextRound = latestRound + 1;
 
+    // Get tournament to check language
+    const { data: tournament } = await supabase
+      .from("tournaments")
+      .select("language")
+      .eq("id", tournamentId)
+      .single();
+
+    const language = tournament?.language || "en";
+
     for (let i = 0; i < winners.length; i += 2) {
       if (i + 1 < winners.length) {
-        const randomPrompt = getRandomPrompt();
+        const randomPrompt = getRandomPrompt(language);
 
         await supabase.from("matches").insert({
           tournament_id: tournamentId,
