@@ -21,7 +21,7 @@ export const Card: React.FC<CardProps> = ({
   selected = false,
 }) => {
   const baseClasses =
-    "bg-white dark:bg-background-dark shadow-card rounded-2xl p-6 transition-all duration-200";
+    "bg-background-dark shadow-card rounded-2xl p-6 transition-all duration-200";
   const hoverClasses = hover
     ? "hover:shadow-glow hover:scale-105 cursor-pointer"
     : "";
