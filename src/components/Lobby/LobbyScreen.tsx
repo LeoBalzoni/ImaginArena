@@ -416,16 +416,12 @@ export const LobbyScreen: React.FC = () => {
                         <div className="text-center mb-4">
                           <Bot className="w-6 h-6 text-orange-600 mx-auto mb-2" />
                           <DarkAwareHeading
-                            onDark={true}
                             level={3}
                             className="text-lg font-semibold text-orange-800"
                           >
                             Admin Controls
                           </DarkAwareHeading>
-                          <DarkAwareText
-                            onDark={true}
-                            className="text-sm text-orange-700"
-                          >
+                          <DarkAwareText className="text-sm text-orange-700">
                             Tournament needs{" "}
                             {(currentTournament?.tournament_size || 16) -
                               participants.length}{" "}

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
 import { BotService } from "../../services/botService";
-import { Button, Card, Container, Heading, Text, LoadingSpinner } from "../ui";
+import { Card, Container, Heading, Text, LoadingSpinner } from "../ui";
 import type { Match, User } from "../../lib/supabase";
 
 interface BracketMatchProps {
@@ -180,8 +180,11 @@ export const TournamentBracket: React.FC = () => {
 
   const getRoundName = (round: number, matchCount: number): string => {
     switch (matchCount) {
-      case 8:
+      case 16:
         return "Round 1";
+      case 8:
+        if (round === 1) return "Round 1";
+        return "Round 2";
       case 4:
         return "Quarterfinals";
       case 2:
@@ -234,6 +237,11 @@ export const TournamentBracket: React.FC = () => {
                 ? "bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800"
                 : ""
             }
+            ${
+              round === 5
+                ? "bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800"
+                : ""
+            }
           `}
           >
             <Heading
@@ -243,6 +251,7 @@ export const TournamentBracket: React.FC = () => {
               ${round === 2 ? "text-secondary-800" : ""}
               ${round === 3 ? "text-accent-800" : ""}
               ${round === 4 ? "text-yellow-800" : ""}
+              ${round === 5 ? "text-purple-800" : ""}
             `}
             >
               {getRoundName(round, roundMatches.length)}
@@ -359,26 +368,10 @@ export const TournamentBracket: React.FC = () => {
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
           <div className="flex gap-6 sm:gap-8 lg:gap-12 min-w-max pb-4 px-4">
-            {[1, 2, 3, 4].map((round) => renderRound(round)).filter(Boolean)}
+            {[1, 2, 3, 4, 5].map((round) => renderRound(round)).filter(Boolean)}
           </div>
         </div>
       </Card>
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="mt-8 text-center"
-      >
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={() => setCurrentView("lobby")}
-          className="w-full sm:w-auto"
-        >
-          Back to Lobby
-        </Button>
-      </motion.div>
     </Container>
   );
 };

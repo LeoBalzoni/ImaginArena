@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Upload, Image as ImageIcon, Loader2, X } from "lucide-react";
+import { Upload, Image as ImageIcon, Loader2, X, Sparkles } from "lucide-react";
 import { MatchService } from "../../services/matchService";
 import { useStore } from "../../store/useStore";
 import { DarkAwareText } from "../ui";
@@ -85,11 +85,22 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
 
   return (
     <div className="card">
-      <h3 className="mb-4">
-        <DarkAwareText className="text-lg font-semibold" onDark={true}>
-          Submit Your Image
-        </DarkAwareText>
-      </h3>
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
+        <h3>
+          <DarkAwareText className="text-lg font-semibold" onDark={true}>
+            Submit Your Image
+          </DarkAwareText>
+        </h3>
+        <a
+          href="https://gemini.google.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Create with Gemini</span>
+        </a>
+      </div>
 
       {!selectedFile ? (
         <div
