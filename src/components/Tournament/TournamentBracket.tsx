@@ -1,5 +1,12 @@
-import React, { useEffect } from "react";
-import { Trophy, Users, Crown, Zap } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  Trophy,
+  Users,
+  Crown,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
@@ -150,11 +157,62 @@ export const TournamentBracket: React.FC = () => {
     setCurrentView,
   } = useStore();
 
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [showLeftScroll, setShowLeftScroll] = useState(false);
+  const [showRightScroll, setShowRightScroll] = useState(false);
+
   useEffect(() => {
     if (currentTournament) {
       loadMatches();
     }
   }, [currentTournament]);
+
+  useEffect(() => {
+    // Delay to ensure DOM is fully rendered
+    const timeoutId = setTimeout(() => {
+      checkScrollIndicators();
+    }, 100);
+
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", checkScrollIndicators);
+      window.addEventListener("resize", checkScrollIndicators);
+      return () => {
+        clearTimeout(timeoutId);
+        container.removeEventListener("scroll", checkScrollIndicators);
+        window.removeEventListener("resize", checkScrollIndicators);
+      };
+    }
+  }, [matches]);
+
+  const checkScrollIndicators = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+    const hasScrollableContent = scrollWidth > clientWidth;
+
+    setShowLeftScroll(hasScrollableContent && scrollLeft > 10);
+    setShowRightScroll(
+      hasScrollableContent && scrollLeft < scrollWidth - clientWidth - 10
+    );
+  };
+
+  const scrollToDirection = (direction: "left" | "right") => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const scrollAmount = 400;
+    const targetScroll =
+      direction === "left"
+        ? container.scrollLeft - scrollAmount
+        : container.scrollLeft + scrollAmount;
+
+    container.scrollTo({
+      left: targetScroll,
+      behavior: "smooth",
+    });
+  };
 
   const loadMatches = async () => {
     if (!currentTournament) return;
@@ -365,8 +423,90 @@ export const TournamentBracket: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
+      <Card className="overflow-hidden relative !px-0">
+        <AnimatePresence>
+          {showLeftScroll && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0.7, 0.9, 0.7],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                opacity: {
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              }}
+              className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none bg-gradient-to-r from-gray-50 via-gray-50/40 to-transparent"
+            >
+              <motion.button
+                initial={{ x: -20, opacity: 0 }}
+                animate={{
+                  x: 0,
+                  opacity: 1,
+                  scale: [1, 1.05, 1],
+                }}
+                exit={{ x: -20, opacity: 0 }}
+                transition={{
+                  scale: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                whileHover={{ scale: 1.15 }}
+                onClick={() => scrollToDirection("left")}
+                className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-auto bg-white/95 backdrop-blur-sm shadow-lg rounded-full p-3 transition-all duration-200 border border-gray-200 hover:border-primary-300 hover:shadow-glow"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-6 h-6 text-primary" />
+              </motion.button>
+            </motion.div>
+          )}
+          {showRightScroll && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: [0.7, 0.9, 0.7],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                opacity: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              }}
+              className="absolute right-0 top-0 bottom-0 w-20 z-10 pointer-events-none bg-gradient-to-l from-gray-50 via-gray-50/40 to-transparent"
+            >
+              <motion.button
+                initial={{ x: 20, opacity: 0 }}
+                animate={{
+                  x: 0,
+                  opacity: 1,
+                  scale: [1, 1.05, 1],
+                }}
+                exit={{ x: 20, opacity: 0 }}
+                transition={{
+                  scale: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                }}
+                whileHover={{ scale: 1.15 }}
+                onClick={() => scrollToDirection("right")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-auto bg-white/95 backdrop-blur-sm shadow-lg rounded-full p-3 transition-all duration-200 border border-gray-200 hover:border-primary-300 hover:shadow-glow"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-6 h-6 text-primary" />
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div className="overflow-x-auto" ref={scrollContainerRef}>
           <div className="flex gap-6 sm:gap-8 lg:gap-12 min-w-max pb-4 px-4">
             {[1, 2, 3, 4, 5].map((round) => renderRound(round)).filter(Boolean)}
           </div>
