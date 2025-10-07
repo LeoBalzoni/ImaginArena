@@ -6,6 +6,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
@@ -160,6 +161,7 @@ export const TournamentBracket: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (currentTournament) {
@@ -225,6 +227,12 @@ export const TournamentBracket: React.FC = () => {
     } catch (error) {
       console.error("Failed to load matches:", error);
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadMatches();
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const handleMatchClick = (match: Match) => {
@@ -390,6 +398,18 @@ export const TournamentBracket: React.FC = () => {
               {currentTournament.status}
             </Text>
           </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            <span className="text-sm font-medium">Refresh</span>
+          </motion.button>
         </div>
       </motion.div>
 

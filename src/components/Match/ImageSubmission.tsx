@@ -138,14 +138,18 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <ImageIcon className="w-4 h-4" />
-              <span>{selectedFile.name}</span>
-              <span>({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)</span>
+          <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0 flex-shrink">
+              <ImageIcon className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate max-w-[120px] sm:max-w-[200px]">
+                {selectedFile.name}
+              </span>
+              <span className="flex-shrink-0">
+                ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
+              </span>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-shrink-0">
               <button
                 onClick={clearSelection}
                 disabled={isUploading}

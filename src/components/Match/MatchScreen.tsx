@@ -859,7 +859,10 @@ export const MatchScreen: React.FC = () => {
                         transition={{ delay: 0.8 }}
                         src={player1Submission.image_url}
                         alt={`${player1?.username}'s submission`}
-                        className="w-full h-64 object-cover rounded-xl mb-4 shadow-sm"
+                        className="w-full h-64 object-cover rounded-xl mb-4 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() =>
+                          window.open(player1Submission.image_url, "_blank")
+                        }
                       />
                       <div className="flex items-center justify-between">
                         <Text variant="small" color="secondary">
@@ -938,7 +941,10 @@ export const MatchScreen: React.FC = () => {
                         transition={{ delay: 0.8 }}
                         src={player2Submission.image_url}
                         alt={`${player2?.username}'s submission`}
-                        className="w-full h-64 object-cover rounded-xl mb-4 shadow-sm"
+                        className="w-full h-64 object-cover rounded-xl mb-4 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                        onClick={() =>
+                          window.open(player2Submission.image_url, "_blank")
+                        }
                       />
                       <div className="flex items-center justify-between">
                         <Text variant="small" color="secondary">

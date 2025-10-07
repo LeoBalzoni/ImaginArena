@@ -32,9 +32,6 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
 }) => {
   const { user, setError } = useStore();
   const [isVoting, setIsVoting] = useState(false);
-  const [selectedSubmission, setSelectedSubmission] = useState<string | null>(
-    null
-  );
   const [modalImage, setModalImage] = useState<{
     url: string;
     playerName: string;
@@ -62,10 +59,6 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
       .length;
   };
 
-  // const hasUserVoted = () => {
-  //   return votes.some((v) => v.voter_id === user?.id);
-  // };
-
   const getUserVote = () => {
     return votes.find((v) => v.voter_id === user?.id);
   };
@@ -78,7 +71,6 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
     isPlayer1: boolean
   ) => {
     const hasUserVoted = userVote?.voted_for_submission_id === submission.id;
-    const isSelected = selectedSubmission === submission.id;
     const voteCount = getVoteCount(submission.id);
 
     return (
@@ -89,22 +81,12 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
         className="w-full"
       >
         <Card
-          hover={canVote}
-          selected={hasUserVoted || isSelected}
+          selected={hasUserVoted}
           className={`relative overflow-hidden transition-all duration-300 ${
             hasUserVoted
               ? "border-accent shadow-glow-accent bg-gradient-to-br from-accent-50 to-accent-100"
-              : isSelected && canVote
-              ? "border-primary shadow-glow bg-primary-50"
-              : canVote
-              ? "hover:border-primary-300 cursor-pointer"
               : ""
           }`}
-          onClick={() => {
-            if (canVote && !hasUserVoted) {
-              setSelectedSubmission(submission.id);
-            }
-          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
@@ -145,8 +127,14 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
           {/* Image Container */}
           <div className="relative group">
             <motion.div
-              whileHover={canVote ? { scale: 1.02 } : {}}
-              className="relative rounded-2xl overflow-hidden"
+              whileHover={{ scale: 1.02 }}
+              className="relative rounded-2xl overflow-hidden cursor-pointer"
+              onClick={() => {
+                setModalImage({
+                  url: submission.image_url,
+                  playerName: player.username,
+                });
+              }}
             >
               <img
                 src={submission.image_url}
@@ -154,26 +142,15 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 className="w-full h-64 sm:h-72 object-cover transition-transform duration-300"
               />
 
-              {/* Zoom Button */}
+              {/* Zoom Indicator */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.3 }}
-                className="absolute top-3 right-3"
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                className="absolute inset-0 bg-black/20 flex items-center justify-center transition-opacity"
               >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setModalImage({
-                      url: submission.image_url,
-                      playerName: player.username,
-                    });
-                  }}
-                  className="bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-all backdrop-blur-sm shadow-lg hover:scale-110"
-                  title="View full size"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                </button>
+                <div className="bg-black/60 text-white p-3 rounded-full backdrop-blur-sm">
+                  <ZoomIn className="w-6 h-6" />
+                </div>
               </motion.div>
 
               {/* Vote Overlay */}
@@ -200,15 +177,6 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {/* Selection Glow */}
-              {isSelected && canVote && !hasUserVoted && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-primary/10 backdrop-blur-sm border-2 border-primary rounded-2xl"
-                />
-              )}
             </motion.div>
           </div>
 
@@ -221,7 +189,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
               className="mt-6"
             >
               <Button
-                variant={isSelected ? "primary" : "outline"}
+                variant="primary"
                 size="lg"
                 onClick={() => handleVote(submission.id)}
                 isLoading={isVoting}
