@@ -1,13 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  Clock,
-  Crown,
-  Play,
-  Users,
-  RefreshCw,
-  Settings,
-  Bot,
-} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Clock, Crown, Play, Users, Bot } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
@@ -26,6 +19,7 @@ import {
 import type { Tournament } from "../../lib/supabase";
 
 export const LobbyScreen: React.FC = () => {
+  const { t } = useTranslation();
   const {
     user,
     currentTournament,
@@ -38,7 +32,6 @@ export const LobbyScreen: React.FC = () => {
 
   const [isJoining, setIsJoining] = useState(false);
   const [isLoadingTournament, setIsLoadingTournament] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isFilling, setIsFilling] = useState(false);
   const [fillWithBots, setFillWithBots] = useState(false);
@@ -171,32 +164,6 @@ export const LobbyScreen: React.FC = () => {
     setShowTournamentSelection(false);
   };
 
-  const handleBackToSelection = () => {
-    setCurrentTournament(null);
-    setParticipants([]);
-    setShowTournamentSelection(true);
-  };
-
-  const refreshParticipants = async () => {
-    if (!currentTournament) return;
-
-    setIsRefreshing(true);
-    try {
-      const updatedParticipants =
-        await TournamentService.getTournamentParticipants(currentTournament.id);
-      setParticipants(updatedParticipants);
-    } catch (error) {
-      console.error("Error refreshing participants:", error);
-      setError(
-        error instanceof Error
-          ? error.message
-          : "Failed to refresh participants"
-      );
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
   const renderParticipantGrid = () => {
     const tournamentSize = currentTournament?.tournament_size || 16;
     const slots = Array.from({ length: tournamentSize }, (_, i) => {
@@ -257,7 +224,7 @@ export const LobbyScreen: React.FC = () => {
                 <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
               </div>
               <p className="text-xs sm:text-sm text-textcolor-secondary">
-                Waiting...
+                {t("lobby.waiting")}
               </p>
             </div>
           )}
@@ -275,7 +242,7 @@ export const LobbyScreen: React.FC = () => {
   if (isLoadingTournament) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" text="Loading tournament..." />
+        <LoadingSpinner size="lg" text={t("lobby.loadingTournament")} />
       </div>
     );
   }
@@ -304,11 +271,11 @@ export const LobbyScreen: React.FC = () => {
           <Crown className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
         </motion.div>
         <Heading level={1} className="mb-3">
-          ImaginArena
+          {t("app.title")}
         </Heading>
         <div className="flex items-center justify-center gap-3 mb-2">
           <Text variant="body" className="text-lg sm:text-xl">
-            Tournament Lobby
+            {t("lobby.tournamentLobby")}
           </Text>
           {currentTournament && (
             <motion.div
@@ -318,7 +285,7 @@ export const LobbyScreen: React.FC = () => {
               className="flex items-center gap-2 bg-gradient-to-r from-primary-50 to-secondary-50 border-2 border-primary-200 rounded-full px-4 py-2 shadow-sm"
             >
               <Text className="font-medium text-primary-700">
-                Prompt language:
+                {t("lobby.promptLanguage")}
               </Text>
               <span className="text-2xl">
                 {currentTournament.language === "it" ? "🇮🇹" : "🇬🇧"}
@@ -340,26 +307,27 @@ export const LobbyScreen: React.FC = () => {
               level={2}
               className="text-xl sm:text-2xl"
             >
-              Players ({participants.length}/
+              {t("lobby.players")} ({participants.length}/
               {currentTournament?.tournament_size || 16})
             </DarkAwareHeading>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={refreshParticipants}
-                isLoading={isRefreshing}
-                className="self-start sm:self-auto"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-              </Button>
+              {/* Disabled as it automatically refreshes */}
+              {/*<Button*/}
+              {/*  variant="ghost"*/}
+              {/*  size="sm"*/}
+              {/*  onClick={refreshParticipants}*/}
+              {/*  isLoading={isRefreshing}*/}
+              {/*  className="self-start sm:self-auto"*/}
+              {/*>*/}
+              {/*  <RefreshCw className="w-4 h-4" />*/}
+              {/*  {t("lobby.refresh")}*/}
+              {/*</Button>*/}
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="w-4 h-4 text-textcolor-secondary" />
                 <Text variant="small" color="secondary">
                   {participants.length >= 2
-                    ? "Ready to start!"
-                    : "Need at least 2 players..."}
+                    ? t("lobby.readyToStart")
+                    : t("lobby.needPlayers")}
                 </Text>
               </div>
             </div>
@@ -383,8 +351,8 @@ export const LobbyScreen: React.FC = () => {
                 <Play className="w-5 h-5" />
                 {participants.length >=
                 (currentTournament?.tournament_size || 16)
-                  ? "Tournament Full"
-                  : "Join Tournament"}
+                  ? t("lobby.tournamentFull")
+                  : t("lobby.joinTournament")}
               </Button>
             ) : (
               <div className="space-y-6">
@@ -396,13 +364,13 @@ export const LobbyScreen: React.FC = () => {
                   <div className="flex items-center justify-center gap-3 text-accent-800 mb-2">
                     <Users className="w-6 h-6" />
                     <Text className="font-semibold text-lg text-accent-800">
-                      You're in the tournament!
+                      {t("lobby.youreIn")}
                     </Text>
                   </div>
                   <Text variant="small" className="text-accent-700">
                     {participants.length >= 2
-                      ? "Tournament ready to start!"
-                      : "Waiting for more players..."}
+                      ? t("lobby.tournamentReady")
+                      : t("lobby.waitingForPlayers")}
                   </Text>
                 </motion.div>
 
@@ -419,13 +387,14 @@ export const LobbyScreen: React.FC = () => {
                             level={3}
                             className="text-lg font-semibold text-orange-800"
                           >
-                            Admin Controls
+                            {t("lobby.adminControls")}
                           </DarkAwareHeading>
                           <DarkAwareText className="text-sm text-orange-700">
-                            Tournament needs{" "}
-                            {(currentTournament?.tournament_size || 16) -
-                              participants.length}{" "}
-                            more players
+                            {t("lobby.tournamentNeeds", {
+                              count:
+                                (currentTournament?.tournament_size || 16) -
+                                participants.length,
+                            })}
                           </DarkAwareText>
                         </div>
 
@@ -439,15 +408,16 @@ export const LobbyScreen: React.FC = () => {
                             {isFilling ? (
                               <>
                                 <LoadingSpinner size="sm" />
-                                Adding Bots...
+                                {t("lobby.addingBots")}
                               </>
                             ) : (
                               <>
                                 <Bot className="w-4 h-4" />
-                                Fill with Bots (
-                                {(currentTournament?.tournament_size || 16) -
-                                  participants.length}{" "}
-                                needed)
+                                {t("lobby.fillWithBots", {
+                                  count:
+                                    (currentTournament?.tournament_size || 16) -
+                                    participants.length,
+                                })}
                               </>
                             )}
                           </Button>
@@ -466,7 +436,7 @@ export const LobbyScreen: React.FC = () => {
                               htmlFor="fillWithBots"
                               className="text-orange-700 cursor-pointer"
                             >
-                              Auto-fill with bots when starting
+                              {t("lobby.autoFillWithBots")}
                             </label>
                           </div>
                         </div>
@@ -488,29 +458,32 @@ export const LobbyScreen: React.FC = () => {
                         {fillWithBots &&
                         participants.length <
                           (currentTournament?.tournament_size || 16)
-                          ? `Start Tournament (${
-                              participants.length
-                            } players + ${
-                              (currentTournament?.tournament_size || 16) -
-                              participants.length
-                            } bots)`
-                          : `Start Tournament (${participants.length} players)`}
+                          ? t("lobby.startTournamentWithBots", {
+                              players: participants.length,
+                              bots:
+                                (currentTournament?.tournament_size || 16) -
+                                participants.length,
+                            })
+                          : t("lobby.startTournamentPlayers", {
+                              count: participants.length,
+                            })}
                       </Button>
                     )}
                   </div>
                 )}
 
-                {participants.length > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleBackToSelection}
-                    className="w-full sm:w-auto"
-                  >
-                    <Settings className="w-4 h-4" />
-                    Choose Different Tournament
-                  </Button>
-                )}
+                {/* FIXME: Disable functionality until routing system is enabled */}
+                {/*{participants.length > 0 && (*/}
+                {/*  <Button*/}
+                {/*    variant="ghost"*/}
+                {/*    size="sm"*/}
+                {/*    onClick={handleBackToSelection}*/}
+                {/*    className="w-full sm:w-auto"*/}
+                {/*  >*/}
+                {/*    <Settings className="w-4 h-4" />*/}
+                {/*    {t("lobby.chooseDifferentTournament")}*/}
+                {/*  </Button>*/}
+                {/*)}*/}
               </div>
             )}
           </div>
@@ -528,28 +501,28 @@ export const LobbyScreen: React.FC = () => {
             level={3}
             className="mb-6 text-center sm:text-left"
           >
-            How it works
+            {t("lobby.howItWorks")}
           </DarkAwareHeading>
           <div className="space-y-4 sm:space-y-6">
             {[
               {
                 step: 1,
-                text: "At least 2 players join the tournament lobby",
+                text: t("lobby.step1"),
                 color: "primary",
               },
               {
                 step: 2,
-                text: "Tournament starts manually with single-elimination brackets",
+                text: t("lobby.step2"),
                 color: "secondary",
               },
               {
                 step: 3,
-                text: "Each match has a creative prompt - generate and submit your best image",
+                text: t("lobby.step3"),
                 color: "accent",
               },
               {
                 step: 4,
-                text: "Other players vote for their favorite - winner advances to the next round",
+                text: t("lobby.step4"),
                 color: "primary",
               },
             ].map((item, index) => (

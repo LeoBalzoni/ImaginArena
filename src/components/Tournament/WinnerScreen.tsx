@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
@@ -31,6 +32,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
   champion,
   onBackToLobby,
 }) => {
+  const { t } = useTranslation();
   const { user, currentTournament } = useStore();
   const [showConfetti, setShowConfetti] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
@@ -208,7 +210,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
               level={1}
               className="text-4xl sm:text-6xl lg:text-7xl font-bold text-white mb-4 drop-shadow-lg"
             >
-              🎉 CHAMPION! 🎉
+              🎉 {t("winner.champion")} 🎉
             </Heading>
 
             <motion.div
@@ -231,8 +233,8 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
 
                 <DarkAwareText className="text-gray-600 text-lg">
                   {user?.id === champion.id
-                    ? "Congratulations on your victory!"
-                    : "Won the tournament!"}
+                    ? t("winner.congratulationsSelf")
+                    : t("winner.congratulationsOther")}
                 </DarkAwareText>
               </Card>
             </motion.div>
@@ -253,8 +255,10 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                     <Sparkles className="w-8 h-8 text-accent mx-auto mb-4" />
                     <DarkAwareText className="text-lg text-gray-700 leading-relaxed">
                       {user?.id === champion.id
-                        ? "You've conquered the tournament and proven yourself as the ultimate creative champion! Your artistic vision and skill have earned you this well-deserved victory."
-                        : `${champion.username} has conquered the tournament and proven themselves as the ultimate creative champion! Thank you for participating and showcasing your creativity. Every submission made this tournament amazing!`}
+                        ? t("winner.tournamentWonSelf")
+                        : `${champion.username} ${t(
+                            "winner.tournamentWonOther"
+                          )}`}
                     </DarkAwareText>
                   </div>
                 </Card>
@@ -282,10 +286,10 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                             level={3}
                             className="text-lg font-semibold text-gray-800"
                           >
-                            Admin Controls
+                            {t("admin.dashboard")}
                           </Heading>
                           <DarkAwareText className="text-sm text-gray-600">
-                            End this tournament and return all players to lobby
+                            {t("winner.endTournament")}
                           </DarkAwareText>
                         </div>
                         <Button
@@ -297,12 +301,12 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                           {endingTournament ? (
                             <>
                               <LoadingSpinner size="sm" />
-                              Ending Tournament...
+                              {t("winner.endingTournament")}
                             </>
                           ) : (
                             <>
                               <Trophy className="w-5 h-5" />
-                              End Tournament
+                              {t("winner.endTournament")}
                             </>
                           )}
                         </Button>
@@ -312,18 +316,17 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
 
                 {/* Regular Action Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={onBackToLobby}
-                    className="bg-white/90 hover:bg-white text-gray-800 border-0 shadow-lg"
-                    disabled={currentTournament?.status === "in_progress"}
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                    {currentTournament?.status === "in_progress"
-                      ? "Tournament Active"
-                      : "Back to Lobby"}
-                  </Button>
+                  {currentTournament?.status != "in_progress" && (
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      onClick={onBackToLobby}
+                      className="bg-white/90 hover:bg-white text-gray-800 border-0 shadow-lg"
+                    >
+                      <ArrowLeft className="w-5 h-5" />
+                      {t("winner.backToLobby")}
+                    </Button>
+                  )}
 
                   <Button
                     variant="outline"
@@ -335,7 +338,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                     }}
                   >
                     <Share2 className="w-5 h-5" />
-                    Share Victory
+                    {t("winner.share")}
                   </Button>
                 </div>
               </motion.div>

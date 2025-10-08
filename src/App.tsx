@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { useStore } from "./store/useStore";
 import { AuthService } from "./services/authService";
 import { LoginForm } from "./components/Auth/LoginForm";
@@ -13,6 +14,7 @@ import { Footer } from "./components/Footer";
 import { LoadingSpinner } from "./components/ui";
 
 function App() {
+  const { t } = useTranslation();
   const {
     user,
     isAuthenticated,
@@ -110,7 +112,7 @@ function App() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="text-textcolor-secondary">Loading ImaginArena...</p>
+          <p className="text-textcolor-secondary">{t("app.loading")}</p>
         </div>
       </div>
     );

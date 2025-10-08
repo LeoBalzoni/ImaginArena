@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Users, Plus, Play, Clock, Trophy, Globe } from "lucide-react";
 import {
@@ -20,6 +21,7 @@ interface TournamentSelectionProps {
 export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
   onTournamentSelected,
 }) => {
+  const { t } = useTranslation();
   const { user } = useStore();
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [participantCounts, setParticipantCounts] = useState<
@@ -111,7 +113,9 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
       <Container className="py-8">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <DarkAwareText className="mt-4">Loading tournaments...</DarkAwareText>
+          <DarkAwareText className="mt-4">
+            {t("lobby.loadingTournaments")}
+          </DarkAwareText>
         </div>
       </Container>
     );
@@ -121,10 +125,10 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
     <Container className="py-8">
       <div className="text-center mb-8">
         <DarkAwareHeading level={1} className="text-4xl font-bold mb-4">
-          Choose Your Tournament
+          {t("tournamentSelection.title")}
         </DarkAwareHeading>
         <DarkAwareText className="text-lg text-textcolor-secondary">
-          Join an existing tournament or create a new one
+          {t("tournamentSelection.subtitle")}
         </DarkAwareText>
       </div>
 
@@ -142,14 +146,14 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
               className="text-xl font-semibold mb-4 flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
-              Create New Tournament (Admin)
+              {t("tournamentSelection.createTournament")}
             </DarkAwareHeading>
 
             {/* Language Toggle */}
             <div className="mb-4 flex items-center gap-3">
               <Globe className="w-5 h-5 text-textcolor-secondary" />
               <DarkAwareText className="font-medium" onDark={true}>
-                Language:
+                {t("tournamentSelection.language")}:
               </DarkAwareText>
               <div className="flex gap-2">
                 <Button
@@ -159,7 +163,7 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
                   disabled={creating}
                   className="min-w-[80px]"
                 >
-                  🇬🇧 English
+                  🇬🇧 {t("tournamentSelection.english")}
                 </Button>
                 <Button
                   variant={selectedLanguage === "it" ? "primary" : "outline"}
@@ -168,7 +172,7 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
                   disabled={creating}
                   className="min-w-[80px]"
                 >
-                  🇮🇹 Italiano
+                  🇮🇹 {t("tournamentSelection.italian")}
                 </Button>
               </div>
             </div>
@@ -187,7 +191,9 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
                   <span className="text-2xl">
                     {getTournamentSizeIcon(size)}
                   </span>
-                  <span className="font-semibold">{size} Players</span>
+                  <span className="font-semibold">
+                    {t("tournamentSelection.players", { count: size })}
+                  </span>
                 </Button>
               ))}
             </div>
@@ -198,7 +204,7 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
       {/* Available Tournaments */}
       <div className="space-y-4">
         <DarkAwareHeading level={2} className="text-2xl font-semibold mb-4">
-          Available Tournaments
+          {t("tournamentSelection.availableTournaments")}
         </DarkAwareHeading>
 
         {tournaments.length === 0 ? (
@@ -209,12 +215,10 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
               level={3}
               className="text-xl font-semibold mb-2"
             >
-              No tournaments available
+              {t("tournamentSelection.noTournaments")}
             </DarkAwareHeading>
             <DarkAwareText className="text-textcolor-secondary">
-              {user?.is_admin
-                ? "Create a new tournament to get started!"
-                : "Wait for an admin to create a tournament."}
+              {t("tournamentSelection.noTournamentsDesc")}
             </DarkAwareText>
           </Card>
         ) : (
@@ -265,7 +269,9 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
                         <Users className="w-4 h-4 text-textcolor-secondary" />
                         <DarkAwareText className="text-sm">
                           {participantCount}/{tournament.tournament_size}{" "}
-                          players
+                          {t("tournamentSelection.players", {
+                            count: tournament.tournament_size,
+                          }).toLowerCase()}
                         </DarkAwareText>
                       </div>
                       <div className="w-full max-w-24 bg-gray-200 rounded-full h-2 ml-4">
@@ -290,14 +296,14 @@ export const TournamentSelection: React.FC<TournamentSelectionProps> = ({
                       {isJoining ? (
                         <>
                           <LoadingSpinner size="sm" />
-                          Joining...
+                          {t("common.joining")}
                         </>
                       ) : isFull ? (
-                        "Tournament Full"
+                        t("lobby.tournamentFull")
                       ) : (
                         <>
                           <Play className="w-4 h-4" />
-                          Join Tournament
+                          {t("tournamentSelection.join")}
                         </>
                       )}
                     </Button>

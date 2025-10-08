@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Crown,
   LogOut,
@@ -11,9 +12,11 @@ import {
 import { motion } from "framer-motion";
 import { useStore } from "../store/useStore";
 import { AuthService } from "../services/authService";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Button, Container, Heading, Text } from "./ui";
 
 export const Header: React.FC = () => {
+  const { t } = useTranslation();
   const { user, currentTournament, participants, setCurrentView, currentView } =
     useStore();
 
@@ -26,17 +29,20 @@ export const Header: React.FC = () => {
   };
 
   const getStatusText = () => {
-    if (!currentTournament) return "No active tournament";
+    if (!currentTournament) return t("header.noActiveTournament");
 
     switch (currentTournament.status) {
       case "lobby":
-        return `Lobby (${participants.length}/${currentTournament.tournament_size} players)`;
+        return t("header.lobbyStatus", {
+          count: participants.length,
+          total: currentTournament.tournament_size,
+        });
       case "in_progress":
-        return "Tournament in progress";
+        return t("header.tournamentInProgress");
       case "finished":
-        return "Tournament finished";
+        return t("header.tournamentFinished");
       default:
-        return "Unknown status";
+        return t("header.unknownStatus");
     }
   };
 
@@ -80,7 +86,7 @@ export const Header: React.FC = () => {
                 level={2}
                 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"
               >
-                ImaginArena
+                {t("app.title")}
               </Heading>
               <Text variant="small" className="text-textcolor-secondary">
                 {getStatusText()}
@@ -90,6 +96,7 @@ export const Header: React.FC = () => {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-2">
+            <LanguageSwitcher />
             <Button
               variant={currentView === "lobby" ? "primary" : "ghost"}
               size="sm"
@@ -97,7 +104,7 @@ export const Header: React.FC = () => {
               className="transition-all duration-200"
             >
               <Users className="w-4 h-4" />
-              Lobby
+              {t("header.lobby")}
             </Button>
 
             {currentTournament && currentTournament.status !== "lobby" && (
@@ -112,7 +119,7 @@ export const Header: React.FC = () => {
                 className="transition-all duration-200"
               >
                 <Trophy className="w-4 h-4" />
-                Tournament
+                {t("header.tournament")}
               </Button>
             )}
 
@@ -125,7 +132,7 @@ export const Header: React.FC = () => {
                 className="transition-all duration-200"
               >
                 <Settings className="w-4 h-4" />
-                Admin
+                {t("header.admin")}
               </Button>
             )}
           </nav>
@@ -151,7 +158,7 @@ export const Header: React.FC = () => {
               size="sm"
               onClick={handleSignOut}
               className="p-2 hover:bg-red-50 hover:text-red-600 transition-colors"
-              title="Sign out"
+              title={t("header.signOut")}
             >
               <LogOut className="w-4 h-4" />
             </Button>
@@ -168,6 +175,7 @@ export const Header: React.FC = () => {
       >
         <Container>
           <div className="py-3 flex gap-2">
+            <LanguageSwitcher />
             <Button
               variant={currentView === "lobby" ? "primary" : "ghost"}
               size="sm"
@@ -175,7 +183,7 @@ export const Header: React.FC = () => {
               className="flex-1 justify-center"
             >
               <Users className="w-4 h-4" />
-              Lobby
+              {t("header.lobby")}
             </Button>
 
             {currentTournament && currentTournament.status !== "lobby" && (
@@ -190,7 +198,7 @@ export const Header: React.FC = () => {
                 className="flex-1 justify-center"
               >
                 <Trophy className="w-4 h-4" />
-                Tournament
+                {t("header.tournament")}
               </Button>
             )}
 
@@ -203,7 +211,7 @@ export const Header: React.FC = () => {
                 className="flex-1 justify-center"
               >
                 <Settings className="w-4 h-4" />
-                Admin
+                {t("header.admin")}
               </Button>
             )}
           </div>

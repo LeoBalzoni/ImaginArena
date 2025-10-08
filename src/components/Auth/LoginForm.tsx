@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Mail,
   Eye,
@@ -17,6 +18,7 @@ import { useStore } from "../../store/useStore";
 import { Button, Card, DarkAwareHeading, Heading, Text } from "../ui";
 
 export const LoginForm: React.FC = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -71,7 +73,7 @@ export const LoginForm: React.FC = () => {
 
     // Prevent submission if username is not available
     if (isSignUp && usernameStatus === "taken") {
-      setError("Please choose a different username.");
+      setError(t("auth.chooseDifferentUsername"));
       return;
     }
 
@@ -151,12 +153,10 @@ export const LoginForm: React.FC = () => {
                 level={2}
                 className="text-xl mb-2"
               >
-                {isSignUp ? "Join the Arena" : "Welcome Back"}
+                {isSignUp ? t("auth.joinArena") : t("auth.welcomeBack")}
               </DarkAwareHeading>
               <Text className="text-textcolor-secondary">
-                {isSignUp
-                  ? "Create an account to join the creative competition"
-                  : "Sign in to continue your creative journey"}
+                {isSignUp ? t("auth.signUpSubtitle") : t("auth.signInSubtitle")}
               </Text>
             </motion.div>
           </AnimatePresence>
@@ -204,7 +204,7 @@ export const LoginForm: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
             >
-              Email address
+              {t("auth.emailAddress")}
             </label>
             <div className="relative">
               <input
@@ -213,7 +213,7 @@ export const LoginForm: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-textcolor-light-secondary text-textcolor-light-secondary"
-                placeholder="Enter your email"
+                placeholder={t("auth.emailPlaceholder")}
                 required
                 disabled={isLoading}
               />
@@ -234,7 +234,7 @@ export const LoginForm: React.FC = () => {
                   htmlFor="username"
                   className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
                 >
-                  Username
+                  {t("auth.username")}
                 </label>
                 <div className="relative">
                   <input
@@ -249,7 +249,7 @@ export const LoginForm: React.FC = () => {
                         ? "border-red-300 focus:border-red-500"
                         : "border-gray-300 focus:border-primary"
                     }`}
-                    placeholder="Choose a username"
+                    placeholder={t("auth.usernamePlaceholder")}
                     required={isSignUp}
                     disabled={isLoading}
                     minLength={3}
@@ -272,24 +272,24 @@ export const LoginForm: React.FC = () => {
                 </div>
                 <div className="mt-1 space-y-1">
                   <Text variant="small" className="text-textcolor-secondary">
-                    Username must be 3-20 characters long
+                    {t("auth.usernameLength")}
                   </Text>
                   {usernameStatus === "available" && (
                     <div className="text-green-500 text-sm flex items-center gap-1 font-medium">
                       <Check className="w-3 h-3" />
-                      Username is available!
+                      {t("auth.usernameAvailable")}
                     </div>
                   )}
                   {usernameStatus === "taken" && (
                     <div className="text-red-500 text-sm flex items-center gap-1 font-medium">
                       <X className="w-3 h-3" />
-                      Username is already taken
+                      {t("auth.usernameTaken")}
                     </div>
                   )}
                   {usernameStatus === "checking" && (
                     <div className="text-gray-300 text-sm flex items-center gap-1 font-medium">
                       <Loader2 className="w-3 h-3 animate-spin" />
-                      Checking availability...
+                      {t("auth.checkingAvailability")}
                     </div>
                   )}
                 </div>
@@ -303,7 +303,7 @@ export const LoginForm: React.FC = () => {
               htmlFor="password"
               className="block text-sm font-semibold text-textcolor-light-secondary mb-2"
             >
-              Password
+              {t("auth.password")}
             </label>
             <div className="relative">
               <input
@@ -313,7 +313,7 @@ export const LoginForm: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-textcolor-light-secondary text-textcolor-light-secondary"
                 placeholder={
-                  isSignUp ? "Create a password" : "Enter your password"
+                  isSignUp ? t("auth.createPassword") : t("auth.enterPassword")
                 }
                 required
                 disabled={isLoading}
@@ -334,7 +334,7 @@ export const LoginForm: React.FC = () => {
             </div>
             {isSignUp && (
               <Text variant="small" className="text-textcolor-secondary mt-1">
-                Password must be at least 6 characters long
+                {t("auth.passwordLength")}
               </Text>
             )}
           </div>
@@ -362,7 +362,7 @@ export const LoginForm: React.FC = () => {
               className="w-full"
             >
               {!isLoading && <Mail className="w-4 h-4" />}
-              {isSignUp ? "Create Account" : "Sign In"}
+              {isSignUp ? t("auth.createAccount") : t("auth.signIn")}
             </Button>
           </motion.div>
         </motion.form>
@@ -386,8 +386,8 @@ export const LoginForm: React.FC = () => {
             className="text-primary hover:text-primary-600 font-semibold transition-colors duration-200 mx-auto"
           >
             {isSignUp
-              ? "Already have an account? Sign in"
-              : "Don't have an account? Sign up"}
+              ? t("auth.alreadyHaveAccount")
+              : t("auth.dontHaveAccount")}
           </Button>
         </motion.div>
       </Card>

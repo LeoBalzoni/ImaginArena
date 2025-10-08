@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Github,
   Instagram,
@@ -13,29 +14,30 @@ import { Container, Text } from "./ui";
  * Footer component displaying creator information and social links
  */
 export const Footer = () => {
+  const { t } = useTranslation();
   const socialLinks = [
     {
       href: "https://github.com/LeoBalzoni",
       icon: Github,
-      label: "GitHub",
+      label: t("footer.github"),
       hoverColor: "hover:text-gray-900 hover:bg-gray-100",
     },
     {
       href: "https://www.linkedin.com/in/leobalzoni/",
       icon: Linkedin,
-      label: "LinkedIn",
+      label: t("footer.linkedin"),
       hoverColor: "hover:text-blue-600 hover:bg-blue-50",
     },
     {
       href: "https://www.instagram.com/leo_balzoni/",
       icon: Instagram,
-      label: "Instagram",
+      label: t("footer.instagram"),
       hoverColor: "hover:text-pink-600 hover:bg-pink-50",
     },
     {
       href: "mailto:l.balzoni@gmail.com",
       icon: Mail,
-      label: "Email",
+      label: t("footer.email"),
       hoverColor: "hover:text-accent hover:bg-accent-50",
     },
   ];
@@ -57,7 +59,9 @@ export const Footer = () => {
             className="text-center"
           >
             <div className="flex items-center justify-center gap-2 mb-2">
-              <Text className="text-textcolor-secondary">Built with</Text>
+              <Text className="text-textcolor-secondary">
+                {t("footer.builtWith")}
+              </Text>
               <motion.div
                 animate={{
                   scale: [1, 1.2, 1],
@@ -71,7 +75,7 @@ export const Footer = () => {
               >
                 <Heart className="w-4 h-4 text-red-500 fill-current" />
               </motion.div>
-              <Text className="text-textcolor-secondary">by</Text>
+              <Text className="text-textcolor-secondary">{t("footer.by")}</Text>
             </div>
             <div className="flex items-center justify-center gap-2">
               <Text className="font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
@@ -140,8 +144,7 @@ export const Footer = () => {
             className="text-center pt-4 border-t border-primary-100 w-full"
           >
             <Text variant="small" className="text-textcolor-secondary">
-              © 2025 ImaginArena. Built for creative battles and artistic
-              expression.
+              {t("footer.copyright")}
             </Text>
           </motion.div>
         </div>
