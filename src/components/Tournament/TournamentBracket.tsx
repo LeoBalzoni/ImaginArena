@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,6 +33,7 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
   onClick,
   matchSubmissions = [],
 }) => {
+  const { t } = useTranslation();
   if (!match) {
     return (
       <motion.div
@@ -158,7 +160,7 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
               isVotingOpen ? "text-accent-600" : "text-secondary"
             }`}
           >
-            {isVotingOpen ? "Voting Open" : "In Progress"}
+            {isVotingOpen ? t("match.votingPhase") : t("tournament.inProgress")}
           </Text>
         </motion.div>
       )}
@@ -167,6 +169,7 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
 };
 
 export const TournamentBracket: React.FC = () => {
+  const { t } = useTranslation();
   const {
     currentTournament,
     matches,
@@ -279,16 +282,15 @@ export const TournamentBracket: React.FC = () => {
   const getRoundName = (round: number, matchCount: number): string => {
     switch (matchCount) {
       case 16:
-        return "Round 1";
+        return t("tournament.round32");
       case 8:
-        if (round === 1) return "Round 1";
-        return "Round 2";
+        return t("tournament.round16");
       case 4:
-        return "Quarterfinals";
+        return t("tournament.quarterFinal");
       case 2:
-        return "Semifinals";
+        return t("tournament.semiFinal");
       case 1:
-        return "Final";
+        return t("tournament.final");
       default:
         return `Round ${round}`;
     }
@@ -393,7 +395,7 @@ export const TournamentBracket: React.FC = () => {
     return (
       <Container className="py-12">
         <div className="text-center">
-          <LoadingSpinner size="lg" text="No active tournament" />
+          <LoadingSpinner size="lg" text={t("header.noActiveTournament")} />
         </div>
       </Container>
     );
@@ -416,19 +418,23 @@ export const TournamentBracket: React.FC = () => {
           <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
         </motion.div>
         <Heading level={1} className="mb-3">
-          Tournament Bracket
+          {t("tournament.bracket")}
         </Heading>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-textcolor-secondary" />
             <Text variant="body" color="secondary">
-              {participants.length} Players
+              {t("tournamentSelection.players", { count: participants.length })}
             </Text>
           </div>
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-textcolor-secondary" />
-            <Text variant="body" color="secondary" className="capitalize">
-              {currentTournament.status}
+            <Text variant="body" color="secondary">
+              {currentTournament.status === "lobby"
+                ? t("header.lobby")
+                : currentTournament.status === "in_progress"
+                ? t("tournamentSelection.inProgress")
+                : t("admin.finished")}
             </Text>
           </div>
           <motion.button
@@ -441,7 +447,7 @@ export const TournamentBracket: React.FC = () => {
             <RefreshCw
               className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
             />
-            <span className="text-sm font-medium">Refresh</span>
+            <span className="text-sm font-medium">{t("lobby.refresh")}</span>
           </motion.button>
         </div>
       </motion.div>
@@ -465,7 +471,7 @@ export const TournamentBracket: React.FC = () => {
                   <Trophy className="w-16 h-16 sm:w-20 sm:h-20 text-white mx-auto mb-4" />
                 </motion.div>
                 <Heading level={2} className="text-white mb-2">
-                  🎉 Tournament Champion! 🎉
+                  🎉 {t("winner.champion")} 🎉
                 </Heading>
                 <Text className="text-xl sm:text-2xl font-bold text-white">
                   {BotService.getBotDisplayName(champion)}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AdminService } from "../../services/adminService";
 import type { Tournament } from "../../lib/supabase";
 import { UserManagement } from "./UserManagement";
@@ -16,6 +17,7 @@ interface TournamentWithCount extends Tournament {
 }
 
 export const AdminDashboard = () => {
+  const { t } = useTranslation();
   const [tournaments, setTournaments] = useState<TournamentWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +131,7 @@ export const AdminDashboard = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading tournaments...</p>
+          <p className="text-gray-600">{t("lobby.loadingTournaments")}</p>
         </div>
       </div>
     );
@@ -140,8 +142,12 @@ export const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage all tournaments and users</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t("admin.dashboard")}
+          </h1>
+          <p className="mt-2 text-gray-600">
+            {t("admin.manageTournamentsUsers")}
+          </p>
 
           {/* Tab Navigation */}
           <div className="mt-6 border-b border-gray-200">
@@ -154,7 +160,7 @@ export const AdminDashboard = () => {
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
-                Tournament Management
+                {t("admin.manageTournaments")}
               </button>
               <button
                 onClick={() => setActiveTab("users")}
@@ -164,7 +170,7 @@ export const AdminDashboard = () => {
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
-                User Management
+                {t("admin.manageUsers")}
               </button>
             </nav>
           </div>
@@ -196,7 +202,7 @@ export const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Total Tournaments
+                      {t("admin.totalTournaments")}
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {tournaments.length}
@@ -212,7 +218,7 @@ export const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      In Progress
+                      {t("tournamentSelection.inProgress")}
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {
@@ -231,7 +237,7 @@ export const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      In Lobby
+                      {t("admin.inLobby")}
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {tournaments.filter((t) => t.status === "lobby").length}
@@ -247,7 +253,7 @@ export const AdminDashboard = () => {
                   </div>
                   <div className="ml-4">
                     <p className="text-sm font-medium text-gray-600">
-                      Finished
+                      {t("admin.finished")}
                     </p>
                     <p className="text-2xl font-bold text-gray-900">
                       {
@@ -267,14 +273,16 @@ export const AdminDashboard = () => {
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <h2 className="text-lg font-medium text-gray-900">
-                All Tournaments
+                {t("admin.allTournaments")}
               </h2>
             </div>
 
             {tournaments.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No tournaments found</p>
+                <p className="text-gray-600">
+                  {t("tournamentSelection.noTournaments")}
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -282,19 +290,19 @@ export const AdminDashboard = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Tournament ID
+                        {t("admin.tournamentId")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
+                        {t("admin.status")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Participants
+                        {t("admin.participants")}
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created
+                        {t("admin.created")}
                       </th>
                       <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
+                        {t("admin.actions")}
                       </th>
                     </tr>
                   </thead>
@@ -383,7 +391,7 @@ export const AdminDashboard = () => {
               disabled={loading}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
-              {loading ? "Loading..." : "Refresh"}
+              {loading ? t("common.loading") : t("lobby.refresh")}
             </button>
           </div>
         )}
