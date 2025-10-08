@@ -4,12 +4,14 @@ A real-time tournament-based image generation competition platform where creativ
 
 ## 🚀 Features
 
-- **Real-time Tournament System**: 16-player single-elimination tournaments with live updates
+- **Real-time Tournament System**: Multi-size tournaments (2-32 players) with live updates
 - **Creative Prompts**: Random creative text prompts for each match to inspire unique image generation
 - **Image Submission**: Upload and submit AI-generated images via Supabase Storage
 - **Community Voting**: Non-competing players vote for their favorite submissions
 - **Live Bracket**: Real-time tournament bracket with match progression
-- **User Authentication**: Secure sign-in with magic links, GitHub, or Google OAuth
+- **Social Sharing**: Share victories to Instagram Stories, Twitter/X, or copy shareable links
+- **About Page**: Beautiful landing page to explain the game to new players
+- **User Authentication**: Secure email/password authentication
 - **Responsive Design**: Beautiful, modern UI built with TailwindCSS
 
 ## 🛠️ Tech Stack
@@ -77,9 +79,12 @@ cp .env.example .env
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_APP_URL=http://localhost:5173
 ```
 
-You can find these values in your Supabase project settings under "API".
+You can find the Supabase values in your Supabase project settings under "API".
+
+**Note**: `VITE_APP_URL` should be your production URL when deployed (e.g., `https://your-app.vercel.app`).
 
 ### 4. Run the Development Server
 
@@ -108,7 +113,10 @@ vercel
 3. **Set Environment Variables**:
    - Go to your Vercel dashboard
    - Navigate to your project settings
-   - Add the same environment variables from your `.env` file
+   - Add the following environment variables:
+     - `VITE_SUPABASE_URL`: Your Supabase project URL
+     - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+     - `VITE_APP_URL`: Your production URL (e.g., `https://your-app.vercel.app`)
 
 ### Alternative: GitHub Integration
 
@@ -119,13 +127,25 @@ vercel
 
 ## 🎮 How to Play
 
-1. **Sign In**: Use magic link, GitHub, or Google to authenticate
+1. **Sign In**: Create an account with email and password
 2. **Create Profile**: Choose a unique username
-3. **Join Tournament**: Enter the lobby and wait for 16 players
-4. **Auto-Start**: Tournament begins automatically when full
+3. **Join Tournament**: Select or create a tournament (2-32 players)
+4. **Wait for Start**: Admin starts the tournament when full
 5. **Create & Submit**: Generate images based on the creative prompt
 6. **Vote**: Vote for your favorite images in matches you're not competing in
 7. **Advance**: Winners progress through the bracket until a champion is crowned
+8. **Share Victory**: Winners can share their victory on social media!
+
+## 🎉 Sharing Your Victory
+
+When you win a tournament, you can share your achievement:
+
+- **Instagram Story**: Opens Instagram with a pre-filled message and link to the about page
+- **Twitter/X**: Opens Twitter with a victory tweet
+- **Copy Link**: Copies a shareable link to your clipboard
+- **Generic Share**: Uses your device's native share menu (mobile only)
+
+All share links point to `/about` - a beautiful landing page that explains ImaginArena to newcomers!
 
 ## 🏗️ Project Structure
 
@@ -214,6 +234,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [ ] Custom prompt creation by users
 - [ ] Mobile app version
 - [ ] Integration with popular AI image generators
+- [ ] Custom victory images for social sharing
+- [ ] Tournament replay and highlights
 
 ---
 

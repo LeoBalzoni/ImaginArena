@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useStore } from "./store/useStore";
 import { AuthService } from "./services/authService";
 import { LoginForm } from "./components/Auth/LoginForm";
@@ -7,6 +8,7 @@ import { TournamentBracket } from "./components/Tournament/TournamentBracket";
 import { WinnerScreen } from "./components/Tournament/WinnerScreen";
 import { MatchScreen } from "./components/Match/MatchScreen";
 import { AdminDashboard } from "./components/Admin/AdminDashboard";
+import { AboutPage } from "./components/About";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -27,6 +29,8 @@ function App() {
   } = useStore();
 
   const authInitialized = useRef(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Get tournament champion
   const getChampion = () => {
@@ -78,6 +82,10 @@ function App() {
     setCurrentView("lobby");
   };
 
+  const handleGetStarted = () => {
+    navigate("/");
+  };
+
   useEffect(() => {
     // Initialize auth listener only once
     if (!authInitialized.current) {
@@ -116,8 +124,8 @@ function App() {
     );
   }
 
-  // Show login form if not authenticated or no user profile
-  if (!isAuthenticated || !user) {
+  // Show login form if not authenticated or no user profile (except on /about page)
+  if ((!isAuthenticated || !user) && location.pathname !== "/about") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-50 to-secondary-50 flex items-center justify-center p-4">
         <LoginForm />
@@ -128,42 +136,61 @@ function App() {
   // Main application
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-background-light to-primary-50 flex flex-col">
-        <Header />
-
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-4 mt-4 rounded-xl shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">{error}</span>
-              <button
-                onClick={() => setError(null)}
-                className="text-red-500 hover:text-red-700 text-xl font-bold ml-4 transition-colors"
-                aria-label="Close error"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Main Content */}
-        <main className="flex-1">
-          {currentView === "lobby" && <LobbyScreen />}
-          {currentView === "tournament" && <TournamentBracket />}
-          {currentView === "match" && <MatchScreen />}
-          {currentView === "results" && champion && (
-            <WinnerScreen
-              champion={champion}
-              onBackToLobby={handleBackToLobby}
+      <Routes>
+        {/* About Page - Public route */}
+        <Route
+          path="/about"
+          element={
+            <AboutPage
+              onClose={() => navigate("/")}
+              onGetStarted={handleGetStarted}
             />
-          )}
-          {currentView === "results" && !champion && <TournamentBracket />}
-          {currentView === "admin" && user?.is_admin && <AdminDashboard />}
-        </main>
+          }
+        />
 
-        <Footer />
-      </div>
+        {/* Main App - Protected routes */}
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen bg-gradient-to-br from-background-light to-primary-50 flex flex-col">
+              <Header />
+
+              {/* Error Display */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-4 mt-4 rounded-xl shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{error}</span>
+                    <button
+                      onClick={() => setError(null)}
+                      className="text-red-500 hover:text-red-700 text-xl font-bold ml-4 transition-colors"
+                      aria-label="Close error"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Main Content */}
+              <main className="flex-1">
+                {currentView === "lobby" && <LobbyScreen />}
+                {currentView === "tournament" && <TournamentBracket />}
+                {currentView === "match" && <MatchScreen />}
+                {currentView === "results" && champion && (
+                  <WinnerScreen
+                    champion={champion}
+                    onBackToLobby={handleBackToLobby}
+                  />
+                )}
+                {currentView === "results" && !champion && <TournamentBracket />}
+                {currentView === "admin" && user?.is_admin && <AdminDashboard />}
+              </main>
+
+              <Footer />
+            </div>
+          }
+        />
+      </Routes>
     </ErrorBoundary>
   );
 }

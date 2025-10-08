@@ -8,6 +8,10 @@ import {
   ArrowLeft,
   Share2,
   Settings,
+  Instagram,
+  Twitter,
+  Link2,
+  Check,
 } from "lucide-react";
 import {
   Button,
@@ -21,6 +25,12 @@ import {
 import type { User } from "../../lib/supabase";
 import { TournamentService } from "../../services/tournamentService";
 import { useStore } from "../../store/useStore";
+import {
+  shareToInstagramStory,
+  shareToTwitter,
+  shareVictory,
+  copyShareLink,
+} from "../../lib/shareUtils";
 
 interface WinnerScreenProps {
   champion: User;
@@ -35,6 +45,9 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
   const [showConfetti, setShowConfetti] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [endingTournament, setEndingTournament] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   useEffect(() => {
     // Trigger confetti animation
@@ -329,10 +342,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                     variant="outline"
                     size="lg"
                     className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                    onClick={() => {
-                      // TODO: Implement share functionality
-                      console.log("Share victory");
-                    }}
+                    onClick={() => setShowShareModal(true)}
                   >
                     <Share2 className="w-5 h-5" />
                     Share Victory
@@ -343,6 +353,149 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
           </AnimatePresence>
         </div>
       </Container>
+
+      {/* Share Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowShareModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="text-center mb-6">
+                <div className="bg-gradient-to-br from-primary to-accent p-4 rounded-full inline-block mb-4">
+                  <Share2 className="w-8 h-8 text-white" />
+                </div>
+                <Heading level={3} className="text-2xl font-bold text-gray-800 mb-2">
+                  Share Your Victory!
+                </Heading>
+                <DarkAwareText className="text-gray-600">
+                  Let everyone know you conquered the arena
+                </DarkAwareText>
+              </div>
+
+              {shareSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 flex items-center gap-2"
+                >
+                  <Check className="w-5 h-5 text-green-600" />
+                  <DarkAwareText className="text-green-800 text-sm">
+                    Copied to clipboard! Paste it in your story
+                  </DarkAwareText>
+                </motion.div>
+              )}
+
+              <div className="space-y-3">
+                {/* Instagram Story */}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0"
+                  onClick={async () => {
+                    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+                    await shareToInstagramStory({
+                      championName: champion.username,
+                      tournamentSize: currentTournament?.tournament_size || 16,
+                      appUrl: `${appUrl}/about`,
+                    });
+                    setShareSuccess(true);
+                    setTimeout(() => setShareSuccess(false), 3000);
+                  }}
+                >
+                  <Instagram className="w-5 h-5" />
+                  Share to Instagram Story
+                </Button>
+
+                {/* Twitter/X */}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full bg-black hover:bg-gray-800 text-white border-0"
+                  onClick={() => {
+                    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+                    shareToTwitter({
+                      championName: champion.username,
+                      tournamentSize: currentTournament?.tournament_size || 16,
+                      appUrl: `${appUrl}/about`,
+                    });
+                  }}
+                >
+                  <Twitter className="w-5 h-5" />
+                  Share on X (Twitter)
+                </Button>
+
+                {/* Copy Link */}
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 border-gray-300"
+                  onClick={async () => {
+                    const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+                    const success = await copyShareLink(`${appUrl}/about`);
+                    if (success) {
+                      setCopiedLink(true);
+                      setTimeout(() => setCopiedLink(false), 2000);
+                    }
+                  }}
+                >
+                  {copiedLink ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Link2 className="w-5 h-5" />
+                      Copy Link
+                    </>
+                  )}
+                </Button>
+
+                {/* Generic Share (Mobile) */}
+                {navigator.share && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full bg-primary hover:bg-primary-600 text-white border-0"
+                    onClick={async () => {
+                      const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+                      await shareVictory({
+                        championName: champion.username,
+                        tournamentSize: currentTournament?.tournament_size || 16,
+                        appUrl: `${appUrl}/about`,
+                      });
+                    }}
+                  >
+                    <Share2 className="w-5 h-5" />
+                    Share...
+                  </Button>
+                )}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="lg"
+                className="w-full mt-4"
+                onClick={() => setShowShareModal(false)}
+              >
+                Close
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
