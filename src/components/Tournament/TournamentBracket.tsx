@@ -1,25 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  Trophy,
-  Users,
-  Crown,
-  Zap,
   ChevronLeft,
   ChevronRight,
+  Crown,
   RefreshCw,
+  Trophy,
+  Users,
+  Vote,
+  Zap,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
 import { BotService } from "../../services/botService";
-import { Card, Container, Heading, Text, LoadingSpinner } from "../ui";
-import type { Match, User } from "../../lib/supabase";
+import { MatchService } from "../../services/matchService";
+import { Card, Container, Heading, LoadingSpinner, Text } from "../ui";
+import type { Match, Submission, User } from "../../lib/supabase";
 
 interface BracketMatchProps {
   match: Match | null;
   participants: User[];
   isActive?: boolean;
   onClick?: () => void;
+  matchSubmissions?: Submission[];
 }
 
 const BracketMatch: React.FC<BracketMatchProps> = ({
@@ -27,6 +30,7 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
   participants,
   isActive,
   onClick,
+  matchSubmissions = [],
 }) => {
   if (!match) {
     return (
@@ -47,6 +51,9 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
   const winner = match.winner_id
     ? participants.find((p) => p.id === match.winner_id)
     : null;
+
+  // Check if match is in voting phase (both submissions exist but no winner)
+  const isVotingOpen = !winner && matchSubmissions.length === 2;
 
   return (
     <motion.div
@@ -136,11 +143,22 @@ const BracketMatch: React.FC<BracketMatchProps> = ({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center justify-center mt-3 px-3 py-2 bg-secondary-50 rounded-xl"
+          className={`flex items-center justify-center mt-3 px-3 py-2 rounded-xl ${
+            isVotingOpen ? "bg-accent-50" : "bg-secondary-50"
+          }`}
         >
-          <Zap className="w-3 h-3 text-secondary mr-2" />
-          <Text variant="caption" className="text-secondary font-medium">
-            In Progress
+          {isVotingOpen ? (
+            <Vote className="w-3 h-3 text-accent-600 mr-2" />
+          ) : (
+            <Zap className="w-3 h-3 text-secondary mr-2" />
+          )}
+          <Text
+            variant="caption"
+            className={`font-medium ${
+              isVotingOpen ? "text-accent-600" : "text-secondary"
+            }`}
+          >
+            {isVotingOpen ? "Voting Open" : "In Progress"}
           </Text>
         </motion.div>
       )}
@@ -162,6 +180,9 @@ export const TournamentBracket: React.FC = () => {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [allSubmissions, setAllSubmissions] = useState<
+    Record<string, Submission[]>
+  >({});
 
   useEffect(() => {
     if (currentTournament) {
@@ -224,6 +245,17 @@ export const TournamentBracket: React.FC = () => {
         currentTournament.id
       );
       setMatches(tournamentMatches);
+
+      // Load submissions for all matches
+      const submissionsMap: Record<string, Submission[]> = {};
+      await Promise.all(
+        tournamentMatches.map(async (match) => {
+          submissionsMap[match.id] = await MatchService.getMatchSubmissions(
+            match.id
+          );
+        })
+      );
+      setAllSubmissions(submissionsMap);
     } catch (error) {
       console.error("Failed to load matches:", error);
     }
@@ -336,6 +368,7 @@ export const TournamentBracket: React.FC = () => {
                 match={match}
                 participants={participants}
                 onClick={() => handleMatchClick(match)}
+                matchSubmissions={allSubmissions[match.id] || []}
               />
             </motion.div>
           ))}
