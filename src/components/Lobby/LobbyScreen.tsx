@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Clock, Crown, Play, Users, Bot } from "lucide-react";
+import { Clock, Crown, Play, Users, Bot, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
@@ -175,7 +175,7 @@ export const LobbyScreen: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: i * 0.05, duration: 0.3 }}
           className={`
-            aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-2 transition-all duration-200
+            aspect-square rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all duration-200
             ${
               participant
                 ? "border-primary-300 bg-primary-50 shadow-sm hover:shadow-glow"
@@ -188,29 +188,40 @@ export const LobbyScreen: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-center"
+                className="text-center w-full"
               >
                 <div
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm ${
                     BotService.isBot(participant)
                       ? "bg-gradient-to-br from-orange-400 to-orange-600"
+                      : participant.is_admin
+                      ? "bg-gradient-to-br from-yellow-400 to-yellow-600"
                       : "bg-gradient-to-br from-primary to-primary-600"
                   }`}
                 >
                   {BotService.isBot(participant) ? (
                     <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  ) : participant.is_admin ? (
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
                   ) : (
                     <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   )}
                 </div>
-                <p className="text-xs sm:text-sm font-semibold text-textcolor-primary truncate px-1">
+                <p className="text-xs sm:text-sm font-semibold text-textcolor-primary truncate px-1 w-full">
                   {BotService.isBot(participant) ? (
-                    <span className="flex items-center justify-center gap-1">
-                      <span className="text-xs">🤖</span>
-                      {participant.username.replace(
-                        /^AI_|^CreativeBot_|^PixelMaster_|_\d+$/g,
-                        ""
-                      )}
+                    <span className="flex items-center justify-center gap-1 truncate">
+                      <span className="text-xs flex-shrink-0">🤖</span>
+                      <span className="truncate">
+                        {participant.username.replace(
+                          /^AI_|^CreativeBot_|^PixelMaster_|_\d+$/g,
+                          ""
+                        )}
+                      </span>
+                    </span>
+                  ) : participant.is_admin ? (
+                    <span className="flex items-center justify-center gap-1 truncate">
+                      <span className="text-xs flex-shrink-0">⭐</span>
+                      <span className="truncate">{participant.username}</span>
                     </span>
                   ) : (
                     participant.username
@@ -233,7 +244,7 @@ export const LobbyScreen: React.FC = () => {
     });
 
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 sm:gap-4 mb-8">
+      <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4 mb-8">
         {slots}
       </div>
     );

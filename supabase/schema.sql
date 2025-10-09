@@ -141,10 +141,10 @@ CREATE POLICY "Admins can add bot users to tournaments" ON tournament_participan
 
 -- Functions for tournament management
 CREATE OR REPLACE FUNCTION get_tournament_participants(tournament_uuid UUID)
-RETURNS TABLE(id UUID, username TEXT, is_bot BOOLEAN, created_at TIMESTAMP WITH TIME ZONE) AS $$
+RETURNS TABLE(id UUID, username TEXT, is_bot BOOLEAN, is_admin BOOLEAN, created_at TIMESTAMP WITH TIME ZONE) AS $$
 BEGIN
   RETURN QUERY
-  SELECT u.id, u.username, u.is_bot, u.created_at
+  SELECT u.id, u.username, u.is_bot, u.is_admin, u.created_at
   FROM tournament_participants tp
   JOIN users u ON tp.user_id = u.id
   WHERE tp.tournament_id = tournament_uuid

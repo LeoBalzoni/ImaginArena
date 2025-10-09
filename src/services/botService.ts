@@ -174,18 +174,15 @@ export class BotService {
   }
 
   /**
-   * Get bot emoji/icon for display
-   */
-  static getBotIcon(): string {
-    return "🤖";
-  }
-
-  /**
    * Get bot display name with icon
    */
   static getBotDisplayName(user: User): string {
-    return this.isBot(user)
-      ? `${this.getBotIcon()} ${user.username}`
-      : user.username;
+    if (this.isBot(user)) {
+      return `🤖 ${user.username}`;
+    }
+    if (user.is_admin) {
+      return `⭐ ${user.username}`;
+    }
+    return user.username;
   }
 }
