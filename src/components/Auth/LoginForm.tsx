@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { AuthService } from "../../services/authService";
 import { useStore } from "../../store/useStore";
 import { Button, Card, DarkAwareHeading, Heading, Text } from "../ui";
+import { LanguageSwitcher } from "../LanguageSwitcher";
 
 export const LoginForm: React.FC = () => {
   const { t } = useTranslation();
@@ -138,6 +139,11 @@ export const LoginForm: React.FC = () => {
                 <Sparkles className="w-4 h-4 text-accent" />
               </motion.div>
             </div>
+          </div>
+
+          {/* Language Switcher */}
+          <div className="flex justify-center mb-4">
+            <LanguageSwitcher />
           </div>
 
           <AnimatePresence mode="wait">
