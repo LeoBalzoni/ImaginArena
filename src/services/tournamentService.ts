@@ -494,4 +494,33 @@ export class TournamentService {
       setCurrentTournament(updatedTournament.data);
     }
   }
+
+  /**
+   * Toggle anonymous voting for tournament (Admin only)
+   */
+  static async toggleAnonymousVoting(
+    tournamentId: string,
+    anonymousVoting: boolean
+  ): Promise<void> {
+    const { error } = await supabase
+      .from("tournaments")
+      .update({
+        anonymous_voting: anonymousVoting,
+      })
+      .eq("id", tournamentId);
+
+    if (error) throw error;
+
+    // Manually update the store to ensure UI updates immediately
+    const { setCurrentTournament } = useStore.getState();
+    const updatedTournament = await supabase
+      .from("tournaments")
+      .select("*")
+      .eq("id", tournamentId)
+      .single();
+
+    if (updatedTournament.data) {
+      setCurrentTournament(updatedTournament.data);
+    }
+  }
 }

@@ -100,7 +100,11 @@
     "winner": "Winner",
     "inProgress": "Match in Progress",
     "viewBracket": "View Tournament Bracket",
-    "backToLobby": "Back to Lobby"
+    "backToLobby": "Back to Lobby",
+    "anonymousVotingOn": "Anonymous Voting: ON",
+    "anonymousVotingOff": "Anonymous Voting: OFF",
+    "votersWillSeeSubmissions": "Voters will see \"Submission A\" and \"Submission B\"",
+    "votersWillSeeNames": "Voters will see player names"
   },
   "match": {
     "noMatchSelected": "No match selected",
@@ -119,6 +123,9 @@
     "skipToWinner": "Skip submissions and voting - instantly assign winner",
     "adminRevealHint": "Admin only - Click to reveal votes and determine winner",
     "instantWinner": "Instantly assign winner without voting calculation",
+    "submission": "Submission",
+    "showNames": "Show Player Names",
+    "hideNames": "Hide Player Names (Anonymous)",
     "submissionPhase": "Submission Phase",
     "votingPhase": "Voting Open",
     "submitting": "Submitting...",
@@ -139,7 +146,8 @@
     "wins": "Wins!",
     "congratulations": "Congratulations!",
     "betterLuck": "Better luck next time!",
-    "backToBracket": "Back to Bracket"
+    "backToBracket": "Back to Bracket",
+    "quickWinnerDebug": "Quick Winner Assignment (Debug)"
   },
   "imageSubmission": {
     "submitYourImage": "Submit Your Image",

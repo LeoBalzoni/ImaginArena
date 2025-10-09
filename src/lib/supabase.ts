@@ -35,6 +35,7 @@ export interface Tournament {
   status: "lobby" | "in_progress" | "finished";
   tournament_size: 2 | 4 | 8 | 16 | 32;
   admin_ended: boolean;
+  anonymous_voting: boolean;
   created_by?: string;
   created_at: string;
 }

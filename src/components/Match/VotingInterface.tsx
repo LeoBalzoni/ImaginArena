@@ -17,6 +17,7 @@ interface VotingInterfaceProps {
   canVote: boolean;
   votes: VoteType[];
   showVoteCounts?: boolean; // Only show vote counts if true (admin or results phase)
+  anonymousMode?: boolean; // Hide player names during voting
   prompt?: string; // Match prompt for modal display
 }
 
@@ -29,6 +30,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
   canVote,
   votes,
   showVoteCounts = false,
+  anonymousMode = false,
   prompt,
 }) => {
   const { t } = useTranslation();
@@ -74,6 +76,11 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
   ) => {
     const hasUserVoted = userVote?.voted_for_submission_id === submission.id;
     const voteCount = getVoteCount(submission.id);
+    const displayName = anonymousMode
+      ? isPlayer1
+        ? t("match.submission") + " A"
+        : t("match.submission") + " B"
+      : player.username;
 
     return (
       <motion.div
@@ -107,7 +114,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 level={4}
                 className={hasUserVoted ? "text-accent-800" : ""}
               >
-                {player.username}
+                {displayName}
               </DarkAwareHeading>
             </div>
 
@@ -136,7 +143,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
               onClick={() => {
                 setModalImage({
                   url: submission.image_url,
-                  playerName: player.username,
+                  playerName: displayName,
                 });
               }}
             >
@@ -200,7 +207,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 className="w-full"
               >
                 <Heart className="w-5 h-5" />
-                {t("imageSubmission.voteFor")} {player.username}
+                {t("imageSubmission.voteFor")} {displayName}
               </Button>
             </motion.div>
           )}

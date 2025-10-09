@@ -100,7 +100,11 @@
     "winner": "Vincitore",
     "inProgress": "Partita in Corso",
     "viewBracket": "Visualizza Tabellone del Torneo",
-    "backToLobby": "Torna alla Lobby"
+    "backToLobby": "Torna alla Lobby",
+    "anonymousVotingOn": "Voto Anonimo: ATTIVO",
+    "anonymousVotingOff": "Voto Anonimo: DISATTIVO",
+    "votersWillSeeSubmissions": "I votanti vedranno \"Immagine A\" e \"Immagine B\"",
+    "votersWillSeeNames": "I votanti vedranno i nomi dei giocatori"
   },
   "match": {
     "noMatchSelected": "Nessuna partita slezionata",
@@ -119,6 +123,9 @@
     "skipToWinner": "Salta caricamento immagini e voti - assegna vincitore istantaneamente",
     "adminRevealHint": "Solo Admin - Clicca per rivelare i voti e determinare il vincitore",
     "instantWinner": "Assegna istantaneamente un vincitore senza calcolo dei voti",
+    "submission": "Immagine",
+    "showNames": "Mostra Nomi Giocatori",
+    "hideNames": "Nascondi Nomi Giocatori (Anonimo)",
     "submissionPhase": "Fase di caricamento immagini",
     "votingPhase": "Votazione Aperta",
     "submitting": "Invio in corso...",

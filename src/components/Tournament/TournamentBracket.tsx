@@ -9,13 +9,22 @@ import {
   Users,
   Vote,
   Zap,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useStore } from "../../store/useStore";
 import { TournamentService } from "../../services/tournamentService";
 import { BotService } from "../../services/botService";
 import { MatchService } from "../../services/matchService";
-import { Card, Container, Heading, LoadingSpinner, Text } from "../ui";
+import {
+  Card,
+  Container,
+  DarkAwareText,
+  Heading,
+  LoadingSpinner,
+  Text,
+} from "../ui";
 import type { Match, Submission, User } from "../../lib/supabase";
 
 interface BracketMatchProps {
@@ -183,6 +192,7 @@ export const TournamentBracket: React.FC = () => {
   const [showLeftScroll, setShowLeftScroll] = useState(false);
   const [showRightScroll, setShowRightScroll] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isTogglingAnonymous, setIsTogglingAnonymous] = useState(false);
   const [allSubmissions, setAllSubmissions] = useState<
     Record<string, Submission[]>
   >({});
@@ -268,6 +278,22 @@ export const TournamentBracket: React.FC = () => {
     setIsRefreshing(true);
     await loadMatches();
     setTimeout(() => setIsRefreshing(false), 500);
+  };
+
+  const handleToggleAnonymous = async () => {
+    if (!currentTournament) return;
+
+    setIsTogglingAnonymous(true);
+    try {
+      await TournamentService.toggleAnonymousVoting(
+        currentTournament.id,
+        !currentTournament.anonymous_voting
+      );
+    } catch (error) {
+      console.error("Error toggling anonymous voting:", error);
+    } finally {
+      setIsTogglingAnonymous(false);
+    }
   };
 
   const handleMatchClick = (match: Match) => {
@@ -451,6 +477,66 @@ export const TournamentBracket: React.FC = () => {
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Admin Anonymous Voting Toggle */}
+      {useStore.getState().user?.is_admin &&
+        currentTournament.status === "in_progress" && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mb-6 flex justify-center"
+          >
+            <Card className="inline-block">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {currentTournament.anonymous_voting ? (
+                    <EyeOff className="w-5 h-5 text-purple-600" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-purple-600" />
+                  )}
+                  <div>
+                    <DarkAwareText onDark={true} className="font-semibold">
+                      {currentTournament.anonymous_voting
+                        ? t("tournament.anonymousVotingOn")
+                        : t("tournament.anonymousVotingOff")}
+                    </DarkAwareText>
+                    <Text variant="caption" color="secondary">
+                      {currentTournament.anonymous_voting
+                        ? t("tournament.votersWillSeeSubmissions")
+                        : t("tournament.votersWillSeeNames")}
+                    </Text>
+                  </div>
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleToggleAnonymous}
+                  disabled={isTogglingAnonymous}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md whitespace-nowrap"
+                >
+                  {currentTournament.anonymous_voting ? (
+                    <Eye className="w-4 h-4" />
+                  ) : (
+                    <EyeOff className="w-4 h-4" />
+                  )}
+                  <span className="text-sm font-medium">
+                    {currentTournament.anonymous_voting
+                      ? t("match.showNames")
+                      : t("match.hideNames")}
+                  </span>
+                </motion.button>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="text-center mb-8 sm:mb-12"
+      ></motion.div>
 
       <AnimatePresence>
         {champion && (

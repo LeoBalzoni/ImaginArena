@@ -13,6 +13,7 @@ import {
   Zap,
   Sparkles,
   Crown,
+  EyeOff,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "../../store/useStore";
@@ -65,9 +66,25 @@ export const MatchScreen: React.FC = () => {
   const [isEndingVoting, setIsEndingVoting] = useState(false);
   const [isChangingPrompt, setIsChangingPrompt] = useState(false);
   const [isAssigningWinner, setIsAssigningWinner] = useState(false);
+  const [isTogglingAnonymous, setIsTogglingAnonymous] = useState(false);
+  const [playersSwapped, setPlayersSwapped] = useState(false);
 
   useEffect(() => {
     if (currentMatch) {
+      // Initialize player order randomization for this match
+      const storageKey = `match_${currentMatch.id}_swapped`;
+      const stored = localStorage.getItem(storageKey);
+
+      if (stored === null) {
+        // First time seeing this match - randomize
+        const shouldSwap = Math.random() < 0.5;
+        localStorage.setItem(storageKey, shouldSwap.toString());
+        setPlayersSwapped(shouldSwap);
+      } else {
+        // Use stored value
+        setPlayersSwapped(stored === "true");
+      }
+
       loadMatchData();
       return MatchService.subscribeToMatchUpdates(currentMatch.id);
     }
@@ -129,9 +146,17 @@ export const MatchScreen: React.FC = () => {
       currentMatch.id
     );
 
+    const previousPhase = matchPhase;
+
     if (!isReadyForVoting) {
       setMatchPhase("submission");
       return;
+    }
+
+    // If transitioning from submission to voting, reload data to apply anonymous setting
+    if (previousPhase === "submission" && isReadyForVoting) {
+      // Force reload to ensure anonymous setting is applied
+      await loadMatchData();
     }
 
     // If ready for voting, stay in voting phase until admin ends it
@@ -150,10 +175,29 @@ export const MatchScreen: React.FC = () => {
     return !isUserParticipant() && !hasUserVoted(currentMatch.id);
   };
 
-  const getPlayer1 = () =>
-    participants.find((p) => p.id === currentMatch?.player1_id);
-  const getPlayer2 = () =>
-    participants.find((p) => p.id === currentMatch?.player2_id);
+  const getPlayer1 = () => {
+    if (!currentMatch) return undefined;
+    const actualPlayer1 = participants.find(
+      (p) => p.id === currentMatch.player1_id
+    );
+    const actualPlayer2 = participants.find(
+      (p) => p.id === currentMatch.player2_id
+    );
+    // Swap players for display if randomized
+    return playersSwapped ? actualPlayer2 : actualPlayer1;
+  };
+
+  const getPlayer2 = () => {
+    if (!currentMatch) return undefined;
+    const actualPlayer1 = participants.find(
+      (p) => p.id === currentMatch.player1_id
+    );
+    const actualPlayer2 = participants.find(
+      (p) => p.id === currentMatch.player2_id
+    );
+    // Swap players for display if randomized
+    return playersSwapped ? actualPlayer1 : actualPlayer2;
+  };
   const getWinner = () =>
     currentMatch?.winner_id
       ? participants.find((p) => p.id === currentMatch.winner_id)
@@ -161,6 +205,17 @@ export const MatchScreen: React.FC = () => {
 
   const getSubmissionForPlayer = (playerId: string) => {
     return submissions.find((s) => s.user_id === playerId);
+  };
+
+  // Get display player ID (accounting for swap)
+  const getDisplayPlayer1Id = () => {
+    if (!currentMatch) return undefined;
+    return playersSwapped ? currentMatch.player2_id : currentMatch.player1_id;
+  };
+
+  const getDisplayPlayer2Id = () => {
+    if (!currentMatch) return undefined;
+    return playersSwapped ? currentMatch.player1_id : currentMatch.player2_id;
   };
 
   const getVoteCount = (submissionId: string) => {
@@ -261,6 +316,22 @@ export const MatchScreen: React.FC = () => {
     }
   };
 
+  const handleToggleAnonymous = async () => {
+    if (!currentTournament || !user?.is_admin) return;
+
+    setIsTogglingAnonymous(true);
+    try {
+      await TournamentService.toggleAnonymousVoting(
+        currentTournament.id,
+        !currentTournament.anonymous_voting
+      );
+    } catch (error) {
+      console.error("Error toggling anonymous voting:", error);
+    } finally {
+      setIsTogglingAnonymous(false);
+    }
+  };
+
   if (!currentMatch) {
     return (
       <Container className="py-12">
@@ -283,8 +354,29 @@ export const MatchScreen: React.FC = () => {
   const player1 = getPlayer1();
   const player2 = getPlayer2();
   const winner = getWinner();
-  const player1Submission = getSubmissionForPlayer(currentMatch.player1_id);
-  const player2Submission = getSubmissionForPlayer(currentMatch.player2_id);
+  // Use display player IDs (accounting for randomization)
+  const displayPlayer1Id = getDisplayPlayer1Id();
+  const displayPlayer2Id = getDisplayPlayer2Id();
+  const player1Submission = displayPlayer1Id
+    ? getSubmissionForPlayer(displayPlayer1Id)
+    : undefined;
+  const player2Submission = displayPlayer2Id
+    ? getSubmissionForPlayer(displayPlayer2Id)
+    : undefined;
+
+  // Determine if we should show anonymous labels (not for admins)
+  const isAnonymousMode =
+    currentTournament?.anonymous_voting &&
+    matchPhase !== "results" &&
+    !user?.is_admin;
+
+  // Get display names (anonymous or actual)
+  const player1DisplayName = isAnonymousMode
+    ? t("match.submission") + " A"
+    : player1?.username || "Player 1";
+  const player2DisplayName = isAnonymousMode
+    ? t("match.submission") + " B"
+    : player2?.username || "Player 2";
 
   return (
     <Container size="lg" className="py-6 sm:py-8 lg:py-12">
@@ -306,7 +398,7 @@ export const MatchScreen: React.FC = () => {
               <Users className="w-5 h-5 text-white" />
             </div>
             <Text className="font-semibold text-primary-800">
-              {player1?.username || "Player 1"}
+              {player1DisplayName}
             </Text>
           </motion.div>
 
@@ -331,7 +423,7 @@ export const MatchScreen: React.FC = () => {
               <Users className="w-5 h-5 text-white" />
             </div>
             <Text className="font-semibold text-accent-800">
-              {player2?.username || "Player 2"}
+              {player2DisplayName}
             </Text>
           </motion.div>
         </div>
@@ -501,7 +593,7 @@ export const MatchScreen: React.FC = () => {
                     level={4}
                     className="text-primary-800"
                   >
-                    {player1?.username}
+                    {player1DisplayName}
                   </DarkAwareHeading>
                 </div>
                 {player1Submission ? (
@@ -546,7 +638,7 @@ export const MatchScreen: React.FC = () => {
                     level={4}
                     className="text-accent-800"
                   >
-                    {player2?.username}
+                    {player2DisplayName}
                   </DarkAwareHeading>
                 </div>
                 {player2Submission ? (
@@ -603,27 +695,29 @@ export const MatchScreen: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          handleAssignWinner(currentMatch.player1_id)
+                          displayPlayer1Id &&
+                          handleAssignWinner(displayPlayer1Id)
                         }
                         isLoading={isAssigningWinner}
                         disabled={isAssigningWinner}
                         className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
                       >
                         <Crown className="w-4 h-4" />
-                        {player1?.username || "Player 1"}
+                        {player1DisplayName}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          handleAssignWinner(currentMatch.player2_id)
+                          displayPlayer2Id &&
+                          handleAssignWinner(displayPlayer2Id)
                         }
                         isLoading={isAssigningWinner}
                         disabled={isAssigningWinner}
                         className="flex-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
                       >
                         <Crown className="w-4 h-4" />
-                        {player2?.username || "Player 2"}
+                        {player2DisplayName}
                       </Button>
                     </div>
                     <Text
@@ -669,7 +763,7 @@ export const MatchScreen: React.FC = () => {
                   : t("match.alreadyVoted")}
               </Text>
 
-              {/* Admin End Voting Button */}
+              {/* Admin Controls */}
               {user?.is_admin && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -677,6 +771,24 @@ export const MatchScreen: React.FC = () => {
                   transition={{ delay: 0.4 }}
                   className="mt-6 space-y-4"
                 >
+                  {/* Anonymous Voting Toggle */}
+                  <Button
+                    variant="outline"
+                    size="md"
+                    onClick={handleToggleAnonymous}
+                    isLoading={isTogglingAnonymous}
+                    className="w-full bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
+                  >
+                    {currentTournament?.anonymous_voting ? (
+                      <Eye className="w-5 h-5" />
+                    ) : (
+                      <EyeOff className="w-5 h-5" />
+                    )}
+                    {currentTournament?.anonymous_voting
+                      ? t("match.showNames")
+                      : t("match.hideNames")}
+                  </Button>
+
                   <Button
                     variant="secondary"
                     size="lg"
@@ -711,27 +823,29 @@ export const MatchScreen: React.FC = () => {
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          handleAssignWinner(currentMatch.player1_id)
+                          displayPlayer1Id &&
+                          handleAssignWinner(displayPlayer1Id)
                         }
                         isLoading={isAssigningWinner}
                         disabled={isAssigningWinner}
                         className="flex-1 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
                       >
                         <Crown className="w-4 h-4" />
-                        {player1?.username || "Player 1"}
+                        {player1DisplayName}
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() =>
-                          handleAssignWinner(currentMatch.player2_id)
+                          displayPlayer2Id &&
+                          handleAssignWinner(displayPlayer2Id)
                         }
                         isLoading={isAssigningWinner}
                         disabled={isAssigningWinner}
                         className="flex-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
                       >
                         <Crown className="w-4 h-4" />
-                        {player2?.username || "Player 2"}
+                        {player2DisplayName}
                       </Button>
                     </div>
                     <Text
@@ -753,6 +867,7 @@ export const MatchScreen: React.FC = () => {
                 transition={{ delay: 0.6 }}
               >
                 <VotingInterface
+                  key={`voting-${currentMatch.id}-${currentTournament?.anonymous_voting}`}
                   matchId={currentMatch.id}
                   player1={player1}
                   player2={player2}
@@ -761,6 +876,7 @@ export const MatchScreen: React.FC = () => {
                   canVote={canUserVote()}
                   votes={votes}
                   showVoteCounts={user?.is_admin || false}
+                  anonymousMode={currentTournament?.anonymous_voting || false}
                   prompt={currentPrompt}
                 />
               </motion.div>

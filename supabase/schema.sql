@@ -17,6 +17,7 @@ CREATE TABLE tournaments (
   tournament_size INTEGER CHECK (tournament_size IN (2, 4, 8, 16, 32)) DEFAULT 16,
   language TEXT CHECK (language IN ('en', 'it')) DEFAULT 'en',
   admin_ended BOOLEAN DEFAULT FALSE,
+  anonymous_voting BOOLEAN DEFAULT FALSE,
   created_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
