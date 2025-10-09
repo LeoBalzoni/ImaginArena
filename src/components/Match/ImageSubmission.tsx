@@ -172,7 +172,9 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                {isUploading ? t("match.submitting") : t("imageSubmission.submitImage")}
+                {isUploading
+                  ? t("match.submitting")
+                  : t("imageSubmission.submitImage")}
               </button>
             </div>
           </div>

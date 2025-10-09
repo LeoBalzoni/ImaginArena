@@ -86,7 +86,7 @@ export const CREATIVE_PROMPTS_IT = [
   "Un'oasi nel deserto con rovine antiche sullo sfondo",
   "Una stazione spaziale che orbita un pianeta lontano",
   "Un'isola galleggiante con cascate che cadono tra le nuvole",
-  "Una sala giochi al neon degli anni '80",
+  "Una sala giochi piena di luci al neon negli anni '80",
   "Una serra vittoriana piena di piante esotiche",
   "Un pacifico giardino zen con fiori di ciliegio",
   "Una grotta di cristallo con formazioni luminescenti",
@@ -159,23 +159,32 @@ export const CREATIVE_PROMPTS_IT = [
 ];
 
 /**
- * Get a random prompt from the collection based on language
+ * Get a random prompt index (language-agnostic)
  */
-export const getRandomPrompt = (language: "en" | "it" = "en"): string => {
-  const prompts = language === "it" ? CREATIVE_PROMPTS_IT : CREATIVE_PROMPTS_EN;
-  return prompts[Math.floor(Math.random() * prompts.length)];
+export const getRandomPromptIndex = (): number => {
+  return Math.floor(Math.random() * CREATIVE_PROMPTS_EN.length);
 };
 
 /**
- * Get a random prompt that's different from the current one
+ * Get a random prompt index that's different from the current index
  */
-export const getRandomPromptExcluding = (
-  currentPrompt: string,
+export const getRandomPromptIndexExcluding = (currentIndex: number): number => {
+  const availableIndices = Array.from(
+    { length: CREATIVE_PROMPTS_EN.length },
+    (_, i) => i
+  ).filter((i) => i !== currentIndex);
+  return availableIndices[Math.floor(Math.random() * availableIndices.length)];
+};
+
+/**
+ * Get prompt by index and language
+ */
+export const getPromptByIndex = (
+  index: number,
   language: "en" | "it" = "en"
 ): string => {
   const prompts = language === "it" ? CREATIVE_PROMPTS_IT : CREATIVE_PROMPTS_EN;
-  const availablePrompts = prompts.filter((p) => p !== currentPrompt);
-  return availablePrompts[Math.floor(Math.random() * availablePrompts.length)];
+  return prompts[index] || prompts[0];
 };
 
 // Unused battle themes

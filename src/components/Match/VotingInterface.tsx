@@ -6,7 +6,7 @@ import { useStore } from "../../store/useStore";
 import { Button, Card, DarkAwareHeading, Text } from "../ui";
 import { ImageModal } from "./ImageModal";
 import type { User, Submission, Vote as VoteType } from "../../lib/supabase";
-import {useTranslation} from "react-i18next";
+import { useTranslation } from "react-i18next";
 
 interface VotingInterfaceProps {
   matchId: string;
@@ -200,8 +200,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 className="w-full"
               >
                 <Heart className="w-5 h-5" />
-                {t("imageSubmission.voteFor")} {" "}
-                {player.username}
+                {t("imageSubmission.voteFor")} {player.username}
               </Button>
             </motion.div>
           )}

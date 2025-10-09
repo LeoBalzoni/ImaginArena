@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   CheckCircle,
@@ -32,9 +32,10 @@ import {
 import { ImageSubmission } from "./ImageSubmission";
 import { VotingInterface } from "./VotingInterface";
 import { CoinToss } from "./CoinToss";
+import { getPromptByIndex } from "../../data/prompts";
 
 export const MatchScreen: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const {
     user,
     currentMatch,
@@ -48,6 +49,13 @@ export const MatchScreen: React.FC = () => {
     getCurrentUserSubmission,
     hasUserVoted,
   } = useStore();
+
+  // Get prompt in user's current language
+  const currentPrompt = useMemo(() => {
+    if (!currentMatch) return "";
+    const language = i18n.language as "en" | "it";
+    return getPromptByIndex(currentMatch.prompt_index, language);
+  }, [currentMatch, i18n.language]);
 
   const [matchPhase, setMatchPhase] = useState<
     "submission" | "voting" | "results" | "revealing"
@@ -424,7 +432,7 @@ export const MatchScreen: React.FC = () => {
             className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border-l-4 border-primary"
           >
             <Text className="text-lg sm:text-xl italic font-medium text-textcolor-primary leading-relaxed">
-              "{currentMatch.prompt}"
+              "{currentPrompt}"
             </Text>
           </motion.div>
           {user?.is_admin && matchPhase === "submission" && (
@@ -753,7 +761,7 @@ export const MatchScreen: React.FC = () => {
                   canVote={canUserVote()}
                   votes={votes}
                   showVoteCounts={user?.is_admin || false}
-                  prompt={currentMatch.prompt}
+                  prompt={currentPrompt}
                 />
               </motion.div>
             ) : (

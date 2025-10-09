@@ -1,7 +1,7 @@
 import { supabase } from "../lib/supabase";
 import type { Match, Submission, Vote } from "../lib/supabase";
 import { useStore } from "../store/useStore";
-import { getRandomPromptExcluding } from "../data/prompts";
+import { getRandomPromptIndexExcluding } from "../data/prompts";
 
 export class MatchService {
   /**
@@ -225,29 +225,22 @@ export class MatchService {
   /**
    * Update match prompt (admin only)
    */
-  static async updateMatchPrompt(matchId: string): Promise<string> {
+  static async updateMatchPrompt(matchId: string): Promise<number> {
     // Get current match to avoid selecting the same prompt
     const currentMatch = await this.getMatch(matchId);
     if (!currentMatch) {
       throw new Error("Match not found");
     }
 
-    // Get tournament to check language
-    const { data: tournament } = await supabase
-      .from("tournaments")
-      .select("language")
-      .eq("id", currentMatch.tournament_id)
-      .single();
+    // Get a new random prompt index that's different from the current one
+    const newPromptIndex = getRandomPromptIndexExcluding(
+      currentMatch.prompt_index
+    );
 
-    const language = tournament?.language || "en";
-
-    // Get a new random prompt that's different from the current one
-    const newPrompt = getRandomPromptExcluding(currentMatch.prompt, language);
-
-    // Update the match with the new prompt
+    // Update the match with the new prompt index
     const { error } = await supabase
       .from("matches")
-      .update({ prompt: newPrompt })
+      .update({ prompt_index: newPromptIndex })
       .eq("id", matchId);
 
     if (error) throw error;
@@ -259,7 +252,7 @@ export class MatchService {
       setCurrentMatch(updatedMatch);
     }
 
-    return newPrompt;
+    return newPromptIndex;
   }
 
   /**
