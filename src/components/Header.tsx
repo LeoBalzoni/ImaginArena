@@ -142,13 +142,27 @@ export const Header: React.FC = () => {
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-2"
           >
+            {/* Desktop username */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-primary-50 rounded-xl">
               <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
                 <User className="w-4 h-4 text-white" />
               </div>
               <Text className="font-semibold text-textcolor-primary">
+                {user?.username}
+              </Text>
+            </div>
+
+            {/* Mobile username - compact */}
+            <div className="sm:hidden flex items-center gap-1.5 px-2 py-1 bg-primary-50 rounded-lg max-w-[100px]">
+              <div className="w-5 h-5 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="w-3 h-3 text-white" />
+              </div>
+              <Text
+                variant="small"
+                className="font-semibold text-textcolor-primary text-xs truncate"
+              >
                 {user?.username}
               </Text>
             </div>
@@ -174,16 +188,16 @@ export const Header: React.FC = () => {
         className="md:hidden border-t border-primary-100 bg-gradient-to-r from-primary-25 to-secondary-25"
       >
         <Container>
-          <div className="py-3 flex gap-2">
+          <div className="py-2 flex items-center gap-1.5">
             <LanguageSwitcher />
             <Button
               variant={currentView === "lobby" ? "primary" : "ghost"}
               size="sm"
               onClick={() => setCurrentView("lobby")}
-              className="flex-1 justify-center"
+              className="flex-1 px-2 py-1.5 justify-center"
             >
               <Users className="w-4 h-4" />
-              {t("header.lobby")}
+              <span className="text-s">{t("header.lobby")}</span>
             </Button>
 
             {currentTournament && currentTournament.status !== "lobby" && (
@@ -195,10 +209,10 @@ export const Header: React.FC = () => {
                 }
                 size="sm"
                 onClick={() => setCurrentView("tournament")}
-                className="flex-1 justify-center"
+                className="flex-1 px-2 py-1.5 justify-center"
               >
                 <Trophy className="w-4 h-4" />
-                {t("header.tournament")}
+                <span className="text-xs">{t("header.tournament")}</span>
               </Button>
             )}
 
@@ -208,25 +222,12 @@ export const Header: React.FC = () => {
                 variant={currentView === "admin" ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => setCurrentView("admin")}
-                className="flex-1 justify-center"
+                className="flex-1 px-2 py-1.5 justify-center"
               >
                 <Settings className="w-4 h-4" />
-                {t("header.admin")}
+                <span className="text-xs">{t("header.admin")}</span>
               </Button>
             )}
-          </div>
-
-          {/* Mobile User Info */}
-          <div className="sm:hidden pb-3 flex items-center justify-center gap-2 px-3 py-2 bg-primary-50 rounded-xl mx-4 mb-2">
-            <div className="w-6 h-6 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
-              <User className="w-3 h-3 text-white" />
-            </div>
-            <Text
-              variant="small"
-              className="font-semibold text-textcolor-primary"
-            >
-              {user?.username}
-            </Text>
           </div>
         </Container>
       </motion.div>

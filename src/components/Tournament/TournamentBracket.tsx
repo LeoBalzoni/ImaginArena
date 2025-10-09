@@ -446,15 +446,15 @@ export const TournamentBracket: React.FC = () => {
         <Heading level={1} className="mb-3">
           {t("tournament.bracket")}
         </Heading>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-          <div className="flex items-center gap-2">
-            <Users className="w-5 h-5 text-textcolor-secondary" />
+        <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-6">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-textcolor-secondary" />
             <Text variant="body" color="secondary">
               {t("tournamentSelection.players", { count: participants.length })}
             </Text>
           </div>
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-textcolor-secondary" />
+          <div className="flex items-center gap-1.5">
+            <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-textcolor-secondary" />
             <Text variant="body" color="secondary">
               {currentTournament.status === "lobby"
                 ? t("header.lobby")
@@ -468,10 +468,12 @@ export const TournamentBracket: React.FC = () => {
             whileTap={{ scale: 0.95 }}
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-white rounded-xl hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
           >
             <RefreshCw
-              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+              className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
+                isRefreshing ? "animate-spin" : ""
+              }`}
             />
             <span className="text-sm font-medium">{t("lobby.refresh")}</span>
           </motion.button>

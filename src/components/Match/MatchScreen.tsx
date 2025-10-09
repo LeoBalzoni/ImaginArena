@@ -387,18 +387,18 @@ export const MatchScreen: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="text-center mb-8 sm:mb-12"
       >
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mb-6">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-8 mb-6">
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex items-center gap-3 p-4 bg-primary-50 rounded-2xl shadow-sm"
+            className="flex items-center gap-2 p-3 sm:p-4 bg-primary-50 rounded-2xl shadow-sm"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center">
-              <Users className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary to-primary-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <Text className="font-semibold text-primary-800">
-              {player1DisplayName}
+            <Text className="font-semibold text-primary-800 text-sm sm:text-base">
+              {player1?.username}
             </Text>
           </motion.div>
 
@@ -406,24 +406,26 @@ export const MatchScreen: React.FC = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-secondary-100 to-secondary-200 rounded-2xl shadow-sm"
+            className="flex items-center gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-secondary-100 to-secondary-200 rounded-2xl shadow-sm"
           >
-            <Zap className="w-5 h-5 text-secondary-600" />
-            <Text className="text-xl font-bold text-secondary-800">VS</Text>
-            <Zap className="w-5 h-5 text-secondary-600" />
+            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600 hidden sm:block" />
+            <Text className="text-lg sm:text-xl font-bold text-secondary-800">
+              VS
+            </Text>
+            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-secondary-600 hidden sm:block" />
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="flex items-center gap-3 p-4 bg-accent-50 rounded-2xl shadow-sm"
+            className="flex items-center gap-2 p-3 sm:p-4 bg-accent-50 rounded-2xl shadow-sm"
           >
-            <div className="w-10 h-10 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center">
-              <Users className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-accent to-accent-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <Text className="font-semibold text-accent-800">
-              {player2DisplayName}
+            <Text className="font-semibold text-accent-800 text-sm sm:text-base">
+              {player2?.username}
             </Text>
           </motion.div>
         </div>

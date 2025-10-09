@@ -47,10 +47,10 @@ export const Footer = () => {
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
-      className="bg-white/95 backdrop-blur-sm border-t border-primary-100 py-8 mt-auto"
+      className="bg-white/95 backdrop-blur-sm border-t border-primary-100 py-4 mt-auto"
     >
       <Container>
-        <div className="flex flex-col items-center justify-center space-y-6">
+        <div className="flex flex-col items-center justify-center space-y-2">
           {/* Creator Info */}
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -102,7 +102,7 @@ export const Footer = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.5 }}
-            className="flex items-center flex-wrap justify-center gap-3"
+            className="flex items-center flex-wrap justify-center"
           >
             {socialLinks.map((link, index) => {
               const Icon = link.icon;
@@ -125,7 +125,7 @@ export const Footer = () => {
                     y: -2,
                   }}
                   whileTap={{ scale: 0.95 }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-textcolor-secondary transition-all duration-200 ${link.hoverColor}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-textcolor-secondary transition-all duration-200 ${link.hoverColor}`}
                 >
                   <Icon className="w-4 h-4" />
                   <Text variant="small" className="font-medium">
