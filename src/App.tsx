@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { useStore } from "./store/useStore";
 import { AuthService } from "./services/authService";
 import { LoginForm } from "./components/Auth/LoginForm";
@@ -8,6 +9,7 @@ import { TournamentBracket } from "./components/Tournament/TournamentBracket";
 import { WinnerScreen } from "./components/Tournament/WinnerScreen";
 import { MatchScreen } from "./components/Match/MatchScreen";
 import { AdminDashboard } from "./components/Admin/AdminDashboard";
+import { AboutPage } from "./components/About/AboutPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -15,6 +17,8 @@ import { LoadingSpinner } from "./components/ui";
 
 function App() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
     user,
     isAuthenticated,
@@ -80,6 +84,11 @@ function App() {
     setCurrentView("lobby");
   };
 
+  const handleBackFromAbout = () => {
+    // Navigate back to main app
+    navigate("/");
+  };
+
   useEffect(() => {
     // Initialize auth listener only once
     if (!authInitialized.current) {
@@ -89,8 +98,13 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Determine current view based on app state
-    if (isAuthenticated && user && currentTournament) {
+    // Determine current view based on app state (only if not on /about route)
+    if (
+      location.pathname !== "/about" &&
+      isAuthenticated &&
+      user &&
+      currentTournament
+    ) {
       if (currentTournament.status === "lobby") {
         setCurrentView("lobby");
       } else if (currentTournament.status === "in_progress") {
@@ -104,7 +118,14 @@ function App() {
         setCurrentView("results");
       }
     }
-  }, [isAuthenticated, user, currentTournament, matches, setCurrentView]);
+  }, [
+    isAuthenticated,
+    user,
+    currentTournament,
+    matches,
+    setCurrentView,
+    location.pathname,
+  ]);
 
   // Show loading spinner during initial load
   if (isLoading) {
@@ -115,6 +136,20 @@ function App() {
           <p className="text-textcolor-secondary">{t("app.loading")}</p>
         </div>
       </div>
+    );
+  }
+
+  // About page route (accessible without authentication)
+  if (location.pathname === "/about") {
+    return (
+      <ErrorBoundary>
+        <Routes>
+          <Route
+            path="/about"
+            element={<AboutPage onBack={handleBackFromAbout} />}
+          />
+        </Routes>
+      </ErrorBoundary>
     );
   }
 

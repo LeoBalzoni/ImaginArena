@@ -44,7 +44,8 @@
     "github": "GitHub",
     "linkedin": "LinkedIn",
     "instagram": "Instagram",
-    "email": "Email"
+    "email": "Email",
+    "about": "About"
   },
   "lobby": {
     "tournamentLobby": "Tournament Lobby",
@@ -175,7 +176,8 @@
     "backToLobby": "Back to Lobby",
     "tournamentStats": "Tournament Statistics",
     "participants": "Participants: {{count}}",
-    "share": "Share Victory!"
+    "share": "Share Victory!",
+    "sharing": "Sharing..."
   },
   "admin": {
     "dashboard": "Admin Dashboard",
@@ -223,5 +225,51 @@
   "common": {
     "loading": "Loading...",
     "cancel": "Cancel"
+  },
+  "about": {
+    "title": "About ImaginArena",
+    "subtitle": "A competitive platform where creativity meets competition in epic image generation battles",
+    "backToApp": "Back to App",
+    "whatIs": {
+      "title": "What is ImaginArena?",
+      "description": "ImaginArena is an innovative tournament-based platform where participants compete in creative image generation challenges. Each match presents a unique prompt, and players must create their best visual interpretation to advance through single-elimination brackets.",
+      "purpose": "Whether you're an AI art enthusiast, a creative professional, or just someone who loves friendly competition, ImaginArena provides an exciting arena to showcase your creative vision and compete with others."
+    },
+    "features": {
+      "title": "Key Features",
+      "multiplayer": {
+        "title": "Multiplayer Tournaments",
+        "desc": "Compete with 2-32 players in real-time single-elimination tournaments"
+      },
+      "tournament": {
+        "title": "Dynamic Brackets",
+        "desc": "Watch the tournament unfold with live bracket updates and match progression"
+      },
+      "creative": {
+        "title": "Creative Prompts",
+        "desc": "Each match features unique creative challenges to test your artistic vision"
+      },
+      "voting": {
+        "title": "Community Voting",
+        "desc": "Non-competing players vote to determine match winners in a fair democratic process"
+      }
+    },
+    "howToPlay": {
+      "title": "How to Play",
+      "step1": "Join a tournament lobby and wait for other creative competitors",
+      "step2": "When the tournament starts, you'll be matched against opponents in single-elimination brackets",
+      "step3": "For each match, you'll receive a creative prompt - generate and submit your best image",
+      "step4": "Other players vote for their favorite submission - the winner advances to the next round",
+      "step5": "Progress through the rounds until a champion is crowned!"
+    },
+    "techStack": {
+      "title": "Built With Modern Technology",
+      "description": "ImaginArena is built with cutting-edge web technologies to provide a smooth, real-time experience:"
+    },
+    "creator": {
+      "title": "Created by Leonardo Balzoni",
+      "description": "ImaginArena was built as a passion project to combine competitive gaming with creative expression. Connect with me to learn more about this project or discuss collaboration opportunities."
+    },
+    "joinTournament": "Join a Tournament"
   }
 }

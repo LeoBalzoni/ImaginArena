@@ -26,7 +26,7 @@ interface AppState {
   // UI state
   isLoading: boolean;
   error: string | null;
-  currentView: "lobby" | "tournament" | "match" | "results" | "admin";
+  currentView: "lobby" | "tournament" | "match" | "results" | "admin" | "about";
 
   // Actions
   setUser: (user: User | null) => void;
@@ -40,7 +40,7 @@ interface AppState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setCurrentView: (
-    view: "lobby" | "tournament" | "match" | "results" | "admin"
+    view: "lobby" | "tournament" | "match" | "results" | "admin" | "about"
   ) => void;
   setAuthenticated: (isAuthenticated: boolean) => void;
 

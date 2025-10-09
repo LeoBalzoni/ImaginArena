@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Crown,
   LogOut,
@@ -8,6 +9,7 @@ import {
   Users,
   Settings,
   Sparkles,
+  Info,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useStore } from "../store/useStore";
@@ -17,6 +19,7 @@ import { Button, Container, Heading, Text } from "./ui";
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user, currentTournament, participants, setCurrentView, currentView } =
     useStore();
 
@@ -97,6 +100,15 @@ export const Header: React.FC = () => {
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-2">
             <LanguageSwitcher />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/about")}
+              className="transition-all duration-200"
+            >
+              <Info className="w-4 h-4" />
+              {t("footer.about")}
+            </Button>
             <Button
               variant={currentView === "lobby" ? "primary" : "ghost"}
               size="sm"
@@ -191,13 +203,22 @@ export const Header: React.FC = () => {
           <div className="py-2 flex items-center gap-1.5">
             <LanguageSwitcher />
             <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/about")}
+              className="flex-1 px-2 py-1.5 justify-center"
+            >
+              <Info className="w-4 h-4" />
+              <span className="text-xs">{t("footer.about")}</span>
+            </Button>
+            <Button
               variant={currentView === "lobby" ? "primary" : "ghost"}
               size="sm"
               onClick={() => setCurrentView("lobby")}
               className="flex-1 px-2 py-1.5 justify-center"
             >
               <Users className="w-4 h-4" />
-              <span className="text-s">{t("header.lobby")}</span>
+              <span className="text-xs">{t("header.lobby")}</span>
             </Button>
 
             {currentTournament && currentTournament.status !== "lobby" && (

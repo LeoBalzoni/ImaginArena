@@ -22,6 +22,10 @@ import {
 import type { User } from "../../lib/supabase";
 import { TournamentService } from "../../services/tournamentService";
 import { useStore } from "../../store/useStore";
+import {
+  loadShareImage,
+  shareToInstagramStories,
+} from "../../utils/shareUtils";
 
 interface WinnerScreenProps {
   champion: User;
@@ -37,6 +41,7 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
   const [showConfetti, setShowConfetti] = useState(false);
   const [animationPhase, setAnimationPhase] = useState(0);
   const [endingTournament, setEndingTournament] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     // Trigger confetti animation
@@ -63,6 +68,25 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
       console.error("Error ending tournament:", error);
     } finally {
       setEndingTournament(false);
+    }
+  };
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    try {
+      // Get the app URL pointing to /about page
+      const appUrl = `${window.location.origin}/about`;
+
+      // Load the static share image from /public/share-story.png
+      const imageBlob = await loadShareImage();
+
+      // Share to Instagram Stories or download
+      await shareToInstagramStories(imageBlob, appUrl);
+    } catch (error) {
+      console.error("Error sharing victory:", error);
+      // Could show an error toast here
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -332,13 +356,20 @@ export const WinnerScreen: React.FC<WinnerScreenProps> = ({
                     variant="outline"
                     size="lg"
                     className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm"
-                    onClick={() => {
-                      // TODO: Implement share functionality
-                      console.log("Share victory");
-                    }}
+                    onClick={handleShare}
+                    disabled={isSharing}
                   >
-                    <Share2 className="w-5 h-5" />
-                    {t("winner.share")}
+                    {isSharing ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        {t("winner.sharing")}
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-5 h-5" />
+                        {t("winner.share")}
+                      </>
+                    )}
                   </Button>
                 </div>
               </motion.div>
