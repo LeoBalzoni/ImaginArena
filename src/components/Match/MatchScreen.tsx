@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   CheckCircle,
   Clock,
@@ -33,6 +34,7 @@ import { VotingInterface } from "./VotingInterface";
 import { CoinToss } from "./CoinToss";
 
 export const MatchScreen: React.FC = () => {
+  const { t } = useTranslation();
   const {
     user,
     currentMatch,
@@ -255,14 +257,14 @@ export const MatchScreen: React.FC = () => {
     return (
       <Container className="py-12">
         <div className="text-center">
-          <LoadingSpinner size="lg" text="No match selected" />
+          <LoadingSpinner size="lg" text={t("match.noMatchSelected")} />
           <div className="mt-8">
             <Button
               variant="primary"
               size="lg"
               onClick={() => setCurrentView("tournament")}
             >
-              View Tournament Bracket
+              {t("tournament.viewBracket")}
             </Button>
           </div>
         </div>
@@ -340,7 +342,7 @@ export const MatchScreen: React.FC = () => {
             isLoading={isRefreshing}
           >
             <RefreshCw className="w-4 h-4" />
-            Refresh Match Data
+            {t("match.refreshData")}
           </Button>
         </motion.div>
 
@@ -367,10 +369,12 @@ export const MatchScreen: React.FC = () => {
                     <Trophy className="w-12 h-12 sm:w-16 sm:h-16 text-white mx-auto mb-4" />
                   </motion.div>
                   <Heading level={2} className="text-white mb-2">
-                    🏆 Winner: {winner.username}! 🏆
+                    🏆{" "}
+                    {t("match.winnerAnnounce", { username: winner.username })}{" "}
+                    🏆
                   </Heading>
                   <Text className="text-white/90">
-                    Congratulations on advancing to the next round!
+                    {t("match.advanceNext")}
                   </Text>
                 </div>
               </Card>
@@ -398,7 +402,7 @@ export const MatchScreen: React.FC = () => {
                 level={3}
                 className="text-lg sm:text-xl"
               >
-                Creative Prompt
+                {t("match.creativePrompt")}
               </DarkAwareHeading>
             </div>
             {user?.is_admin && matchPhase === "submission" && (
@@ -409,7 +413,7 @@ export const MatchScreen: React.FC = () => {
                 isLoading={isChangingPrompt}
               >
                 <Shuffle className="w-4 h-4" />
-                {isChangingPrompt ? "Changing..." : "New Prompt"}
+                {isChangingPrompt ? t("match.changing") : t("match.newPrompt")}
               </Button>
             )}
           </div>
@@ -425,8 +429,7 @@ export const MatchScreen: React.FC = () => {
           </motion.div>
           {user?.is_admin && matchPhase === "submission" && (
             <Text variant="caption" color="secondary" className="mt-3">
-              Admin: Click "New Prompt" to generate a different creative prompt
-              for this match
+              {t("match.adminPromptHint")}
             </Text>
           )}
         </Card>
@@ -453,10 +456,10 @@ export const MatchScreen: React.FC = () => {
                 <Clock className="w-8 h-8 text-white" />
               </div>
               <Heading level={2} className="mb-2">
-                Submission Phase
+                {t("match.submissionPhase")}
               </Heading>
               <Text color="secondary" className="text-lg">
-                Players are creating and submitting their images
+                {t("match.playersSubmitting")}
               </Text>
             </motion.div>
 
@@ -506,7 +509,7 @@ export const MatchScreen: React.FC = () => {
                       onDark={true}
                       className="text-accent-600 font-semibold text-lg"
                     >
-                      ✨ Submitted!
+                      ✨ {t("match.submitted")}
                     </DarkAwareText>
                   </motion.div>
                 ) : (
@@ -514,7 +517,9 @@ export const MatchScreen: React.FC = () => {
                     <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                       <Upload className="w-8 h-8 text-gray-400" />
                     </div>
-                    <Text color="secondary">Waiting for submission...</Text>
+                    <Text color="secondary">
+                      {t("match.waitingForSubmissions")}
+                    </Text>
                   </div>
                 )}
               </Card>
@@ -549,7 +554,7 @@ export const MatchScreen: React.FC = () => {
                       onDark={true}
                       className="text-accent-600 font-semibold text-lg"
                     >
-                      ✨ Submitted!
+                      ✨ {t("match.submitted")}
                     </DarkAwareText>
                   </motion.div>
                 ) : (
@@ -557,7 +562,9 @@ export const MatchScreen: React.FC = () => {
                     <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
                       <Upload className="w-8 h-8 text-gray-400" />
                     </div>
-                    <Text color="secondary">Waiting for submission...</Text>
+                    <Text color="secondary">
+                      {t("match.waitingForSubmissions")}
+                    </Text>
                   </div>
                 )}
               </Card>
@@ -580,7 +587,7 @@ export const MatchScreen: React.FC = () => {
                         color="secondary"
                         className="font-medium text-red-700"
                       >
-                        Admin: Quick Winner Assignment (Debug)
+                        {t("match.adminQuickWinner")}
                       </Text>
                     </div>
                     <div className="flex gap-3">
@@ -616,7 +623,7 @@ export const MatchScreen: React.FC = () => {
                       color="secondary"
                       className="text-red-600"
                     >
-                      Skip submissions and voting - instantly assign winner
+                      {t("match.skipToWinner")}
                     </Text>
                   </div>
                 </Card>
@@ -644,14 +651,14 @@ export const MatchScreen: React.FC = () => {
                 <Vote className="w-8 h-8 text-white" />
               </div>
               <Heading level={2} className="mb-2">
-                Voting Phase
+                {t("match.votingPhase")}
               </Heading>
               <Text color="secondary" className="text-lg">
                 {canUserVote()
-                  ? "Vote for your favorite image!"
+                  ? t("match.voteForFavorite")
                   : isUserParticipant()
-                  ? "Other players are voting on your match"
-                  : "You have already voted"}
+                  ? t("match.othersVoting")
+                  : t("match.alreadyVoted")}
               </Text>
 
               {/* Admin End Voting Button */}
@@ -671,15 +678,15 @@ export const MatchScreen: React.FC = () => {
                   >
                     <Eye className="w-5 h-5" />
                     {isEndingVoting
-                      ? "Ending Voting..."
-                      : "End Voting & Reveal Results"}
+                      ? t("match.endingVoting")
+                      : t("match.endVotingReveal")}
                   </Button>
                   <Text
                     variant="caption"
                     color="secondary"
                     className="text-center"
                   >
-                    Admin only - Click to reveal votes and determine winner
+                    {t("match.adminRevealHint")}
                   </Text>
 
                   {/* Admin Winner Assignment Controls */}
@@ -689,7 +696,7 @@ export const MatchScreen: React.FC = () => {
                       color="secondary"
                       className="text-center mb-3 font-medium"
                     >
-                      Quick Winner Assignment (Debug)
+                      {t("match.quickWinnerDebug")}
                     </Text>
                     <div className="flex gap-3">
                       <Button
@@ -724,7 +731,7 @@ export const MatchScreen: React.FC = () => {
                       color="secondary"
                       className="text-center mt-2"
                     >
-                      Instantly assign winner without voting calculation
+                      {t("match.instantWinner")}
                     </Text>
                   </div>
                 </motion.div>
@@ -761,21 +768,26 @@ export const MatchScreen: React.FC = () => {
                     <Clock className="w-8 h-8 text-white" />
                   </div>
                   <Heading level={3} className="text-yellow-800 mb-2">
-                    Waiting for Submissions
+                    {t("match.waitingForSubmissions")}
                   </Heading>
                   <Text color="secondary" className="mb-4">
-                    Both players need to submit their images before voting can
-                    begin.
+                    {t("match.bothPlayersSubmit")}
                   </Text>
                   <div className="space-y-2">
                     {!player1Submission && (
                       <Text variant="small" color="secondary">
-                        • Waiting for {player1?.username || "Player 1"}
+                        •{" "}
+                        {t("match.waitingForPlayer", {
+                          username: player1?.username || "Player 1",
+                        })}
                       </Text>
                     )}
                     {!player2Submission && (
                       <Text variant="small" color="secondary">
-                        • Waiting for {player2?.username || "Player 2"}
+                        •{" "}
+                        {t("match.waitingForPlayer", {
+                          username: player2?.username || "Player 2",
+                        })}
                       </Text>
                     )}
                   </div>
@@ -866,14 +878,16 @@ export const MatchScreen: React.FC = () => {
                       />
                       <div className="flex items-center justify-between">
                         <Text variant="small" color="secondary">
-                          Votes: {getVoteCount(player1Submission.id)}
+                          {t("match.votes", {
+                            count: getVoteCount(player1Submission.id),
+                          })}
                         </Text>
                         {winner?.id === player1?.id && (
                           <Text
                             variant="small"
                             className="text-accent-600 font-semibold"
                           >
-                            🎉 Advanced!
+                            🎉 {t("match.advanced")}
                           </Text>
                         )}
                       </div>
@@ -928,7 +942,7 @@ export const MatchScreen: React.FC = () => {
                           variant="small"
                           className="text-white font-semibold"
                         >
-                          Winner
+                          {t("tournament.winner")}
                         </Text>
                       </motion.div>
                     )}
@@ -948,14 +962,16 @@ export const MatchScreen: React.FC = () => {
                       />
                       <div className="flex items-center justify-between">
                         <Text variant="small" color="secondary">
-                          Votes: {getVoteCount(player2Submission.id)}
+                          {t("match.votes", {
+                            count: getVoteCount(player2Submission.id),
+                          })}
                         </Text>
                         {winner?.id === player2?.id && (
                           <Text
                             variant="small"
                             className="text-accent-600 font-semibold"
                           >
-                            🎉 Advanced!
+                            🎉 {t("match.advanced")}
                           </Text>
                         )}
                       </div>
@@ -981,7 +997,7 @@ export const MatchScreen: React.FC = () => {
           onClick={() => setCurrentView("tournament")}
           className="w-full sm:w-auto"
         >
-          Back to Tournament Bracket
+          {t("match.backToBracket")}
         </Button>
       </motion.div>
 

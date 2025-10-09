@@ -3,6 +3,7 @@ import { Upload, Image as ImageIcon, Loader2, X, Sparkles } from "lucide-react";
 import { MatchService } from "../../services/matchService";
 import { useStore } from "../../store/useStore";
 import { DarkAwareText } from "../ui";
+import { useTranslation } from "react-i18next";
 
 interface ImageSubmissionProps {
   matchId: string;
@@ -11,6 +12,8 @@ interface ImageSubmissionProps {
 export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
   matchId,
 }) => {
+  const { t } = useTranslation();
+
   const { user, setError } = useStore();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -88,7 +91,7 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
       <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
         <h3>
           <DarkAwareText className="text-lg font-semibold" onDark={true}>
-            Submit Your Image
+            {t("imageSubmission.submitYourImage")}
           </DarkAwareText>
         </h3>
         <a
@@ -98,7 +101,7 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
           className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white text-sm font-medium rounded-full transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
         >
           <Sparkles className="w-4 h-4" />
-          <span>Create with Gemini</span>
+          <span>{t("imageSubmission.gemini")}</span>
         </a>
       </div>
 
@@ -111,9 +114,11 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
         >
           <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <DarkAwareText className="text-lg font-medium mb-2" onDark={true}>
-            Drop your image here, or click to browse
+            {t("imageSubmission.dropImageHere")}
           </DarkAwareText>
-          <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
+          <p className="text-sm text-gray-500">
+            {t("imageSubmission.imageFormats")}
+          </p>
           <input
             ref={fileInputRef}
             type="file"
@@ -167,7 +172,7 @@ export const ImageSubmission: React.FC<ImageSubmissionProps> = ({
                 ) : (
                   <Upload className="w-4 h-4" />
                 )}
-                {isUploading ? "Submitting..." : "Submit Image"}
+                {isUploading ? t("match.submitting") : t("match.submitImage")}
               </button>
             </div>
           </div>

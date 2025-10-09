@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { AdminService } from "../../services/adminService";
 import type { User } from "../../lib/supabase";
 import { useStore } from "../../store/useStore";
 import { Shield, ShieldOff, Users, AlertTriangle, Trash2 } from "lucide-react";
 
 export const UserManagement = () => {
+  const { t } = useTranslation();
   const { user: currentUser } = useStore();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,19 +24,19 @@ export const UserManagement = () => {
       const data = await AdminService.getAllUsers();
       setUsers(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load users");
+      setError(err instanceof Error ? err.message : t("errors.loadFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   const handleToggleAdmin = async (userId: string, currentIsAdmin: boolean) => {
-    const action = currentIsAdmin
-      ? "remove admin privileges from"
-      : "grant admin privileges to";
     const user = users.find((u) => u.id === userId);
+    const message = currentIsAdmin
+      ? t("admin.confirmRemoveAdmin", { username: user?.username })
+      : t("admin.confirmMakeAdmin", { username: user?.username });
 
-    if (!confirm(`Are you sure you want to ${action} ${user?.username}?`)) {
+    if (!confirm(message)) {
       return;
     }
 
@@ -43,11 +45,7 @@ export const UserManagement = () => {
       await AdminService.toggleUserAdminStatus(userId, !currentIsAdmin);
       await loadUsers(); // Refresh the list
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to update user admin status"
-      );
+      setError(err instanceof Error ? err.message : t("errors.updateFailed"));
     } finally {
       setActionLoading(null);
     }
@@ -58,24 +56,19 @@ export const UserManagement = () => {
 
     // Safety checks
     if (userId === currentUser?.id) {
-      setError("Cannot delete your own account");
+      setError(t("admin.cannotDeleteSelf"));
       return;
     }
 
     if (user?.is_admin) {
-      setError("Cannot delete admin users. Remove admin privileges first.");
+      setError(t("admin.cannotDeleteAdmin"));
       return;
     }
 
     // Double confirmation for user deletion
-    const confirmMessage = `⚠️ DANGER: This will permanently delete user "${user?.username}".
-
-This action will:
-• Remove the user from all tournaments
-• Delete all their submissions and votes
-• This CANNOT be undone
-
-Type "${user?.username}" to confirm deletion:`;
+    const confirmMessage = t("admin.confirmDeleteUser", {
+      username: user?.username,
+    });
 
     const confirmation = prompt(confirmMessage);
 
@@ -88,7 +81,7 @@ Type "${user?.username}" to confirm deletion:`;
       await AdminService.deleteUser(userId);
       await loadUsers(); // Refresh the list
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete user");
+      setError(err instanceof Error ? err.message : t("errors.deleteFailed"));
     } finally {
       setActionLoading(null);
     }
@@ -103,7 +96,7 @@ Type "${user?.username}" to confirm deletion:`;
       <div className="bg-white rounded-lg shadow p-6">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading users...</p>
+          <p className="text-gray-600">{t("admin.loadingUsers")}</p>
         </div>
       </div>
     );
@@ -114,10 +107,10 @@ Type "${user?.username}" to confirm deletion:`;
       <div className="px-6 py-4 border-b border-gray-200">
         <h2 className="text-lg font-medium text-gray-900 flex items-center">
           <Users className="w-5 h-5 mr-2" />
-          User Management
+          {t("admin.manageUsers")}
         </h2>
         <p className="text-sm text-gray-600 mt-1">
-          Manage user roles and admin privileges
+          {t("admin.manageUserRoles")}
         </p>
       </div>
 
@@ -138,7 +131,7 @@ Type "${user?.username}" to confirm deletion:`;
       {users.length === 0 ? (
         <div className="text-center py-12">
           <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600">No users found</p>
+          <p className="text-gray-600">{t("admin.noUsers")}</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -146,19 +139,19 @@ Type "${user?.username}" to confirm deletion:`;
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
+                  {t("admin.user")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Email
+                  {t("admin.email")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  {t("admin.role")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Joined
+                  {t("admin.joined")}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
+                  {t("admin.actions")}
                 </th>
               </tr>
             </thead>
@@ -187,7 +180,7 @@ Type "${user?.username}" to confirm deletion:`;
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {/* Note: Email is not directly available in the users table, 
                          would need to join with auth.users to get email */}
-                    <span className="text-gray-400">Private</span>
+                    <span className="text-gray-400">{t("admin.private")}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -200,12 +193,12 @@ Type "${user?.username}" to confirm deletion:`;
                       {user.is_admin ? (
                         <>
                           <Shield className="w-3 h-3 mr-1" />
-                          Admin
+                          {t("admin.admin")}
                         </>
                       ) : (
                         <>
                           <Users className="w-3 h-3 mr-1" />
-                          User
+                          {t("admin.user")}
                         </>
                       )}
                     </span>
@@ -225,7 +218,11 @@ Type "${user?.username}" to confirm deletion:`;
                             ? "text-red-600 hover:text-red-900 hover:bg-red-50"
                             : "text-blue-600 hover:text-blue-900 hover:bg-blue-50"
                         } disabled:opacity-50`}
-                        title={user.is_admin ? "Remove Admin" : "Make Admin"}
+                        title={
+                          user.is_admin
+                            ? t("admin.removeAdmin")
+                            : t("admin.makeAdmin")
+                        }
                       >
                         {actionLoading === user.id ? (
                           <div className="w-4 h-4 animate-spin border-2 border-current border-t-transparent rounded-full mr-1"></div>
@@ -234,7 +231,9 @@ Type "${user?.username}" to confirm deletion:`;
                         ) : (
                           <Shield className="w-4 h-4 mr-1" />
                         )}
-                        {user.is_admin ? "Remove Admin" : "Make Admin"}
+                        {user.is_admin
+                          ? t("admin.removeAdmin")
+                          : t("admin.makeAdmin")}
                       </button>
 
                       {/* Delete User Button - Only show for non-admin users and not current user */}
@@ -243,14 +242,14 @@ Type "${user?.username}" to confirm deletion:`;
                           onClick={() => handleDeleteUser(user.id)}
                           disabled={actionLoading === user.id}
                           className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-red-600 hover:text-red-900 hover:bg-red-50 disabled:opacity-50 transition-colors"
-                          title="Delete User"
+                          title={t("admin.deleteUser")}
                         >
                           {actionLoading === user.id ? (
                             <div className="w-4 h-4 animate-spin border-2 border-current border-t-transparent rounded-full mr-1"></div>
                           ) : (
                             <Trash2 className="w-4 h-4 mr-1" />
                           )}
-                          Delete
+                          {t("admin.delete")}
                         </button>
                       )}
                     </div>
@@ -269,7 +268,7 @@ Type "${user?.username}" to confirm deletion:`;
           disabled={loading}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
         >
-          {loading ? "Loading..." : "Refresh Users"}
+          {loading ? t("common.loading") : t("admin.refreshUsers")}
         </button>
       </div>
     </div>
