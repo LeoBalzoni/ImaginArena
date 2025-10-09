@@ -6,6 +6,7 @@ import { useStore } from "../../store/useStore";
 import { Button, Card, DarkAwareHeading, Text } from "../ui";
 import { ImageModal } from "./ImageModal";
 import type { User, Submission, Vote as VoteType } from "../../lib/supabase";
+import {useTranslation} from "react-i18next";
 
 interface VotingInterfaceProps {
   matchId: string;
@@ -30,6 +31,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
   showVoteCounts = false,
   prompt,
 }) => {
+  const { t } = useTranslation();
   const { user, setError } = useStore();
   const [isVoting, setIsVoting] = useState(false);
   const [modalImage, setModalImage] = useState<{
@@ -118,7 +120,9 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
               >
                 <Users className="w-4 h-4 text-textcolor-secondary" />
                 <Text variant="small" className="font-semibold">
-                  {voteCount} votes
+                  {t("imageSubmission.votes", {
+                    count: voteCount,
+                  })}
                 </Text>
               </motion.div>
             )}
@@ -170,7 +174,7 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                     >
                       <Heart className="w-5 h-5 fill-current" />
                       <Text className="font-semibold text-white">
-                        Your Vote
+                        {t("imageSubmission.yourVote")}
                       </Text>
                       <Sparkles className="w-5 h-5" />
                     </motion.div>
@@ -196,7 +200,8 @@ export const VotingInterface: React.FC<VotingInterfaceProps> = ({
                 className="w-full"
               >
                 <Heart className="w-5 h-5" />
-                Vote for {player.username}
+                {t("imageSubmission.voteFor")} {" "}
+                {player.username}
               </Button>
             </motion.div>
           )}

@@ -1,5 +1,6 @@
 import React from "react";
 import { X, ZoomIn } from "lucide-react";
+import {useTranslation} from "react-i18next";
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const ImageModal: React.FC<ImageModalProps> = ({
   playerName,
   prompt,
 }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -40,7 +42,9 @@ export const ImageModal: React.FC<ImageModalProps> = ({
             <ZoomIn className="w-5 h-5 text-gray-600" />
             <div>
               <h3 className="font-semibold text-gray-900">
-                {playerName}'s Submission
+                {t("imageSubmission.playerSubmission", {
+                  username: playerName,
+                })}
               </h3>
               {prompt && (
                 <p className="text-sm text-gray-600 italic">"{prompt}"</p>
@@ -70,10 +74,10 @@ export const ImageModal: React.FC<ImageModalProps> = ({
         <div className="p-4 bg-gray-50 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600">
-              Click outside the image or press the X to close
+              {t("imageSubmission.clickOutside")}
             </p>
             <button onClick={onClose} className="btn-secondary text-sm">
-              Close
+              {t("imageSubmission.close")}
             </button>
           </div>
         </div>

@@ -101,20 +101,12 @@
     "quarterFinal": "Quarterfinals",
     "semiFinal": "Semifinals",
     "final": "Final",
-    "vs": "vs",
     "winner": "Winner",
     "inProgress": "Match in Progress",
-    "waiting": "Waiting",
-    "viewMatch": "View Match",
     "viewBracket": "View Tournament Bracket",
     "backToLobby": "Back to Lobby"
   },
   "match": {
-    "round": "Round {{number}}",
-    "final": "Final",
-    "prompt": "Prompt",
-    "yourMatch": "Your Match",
-    "spectating": "Spectating",
     "noMatchSelected": "No match selected",
     "refreshData": "Refresh Match Data",
     "winnerAnnounce": "Winner: {{username}}!",
@@ -133,37 +125,24 @@
     "instantWinner": "Instantly assign winner without voting calculation",
     "submissionPhase": "Submission Phase",
     "votingPhase": "Voting Open",
-    "votingPhase2": "Voting Phase",
-    "resultsPhase": "Results",
-    "timeRemaining": "Time Remaining",
-    "submitYourImage": "Submit Your Image",
-    "uploadImage": "Upload Image",
-    "changeImage": "Change Image",
     "submitting": "Submitting...",
-    "bothSubmitted": "Both players submitted!",
     "bothPlayersSubmit": "Both players need to submit their images before voting can begin.",
     "voteForFavorite": "Vote for your favorite image!",
     "othersVoting": "Other players are voting on your match",
     "alreadyVoted": "You have already voted",
-    "votingEnds": "Voting ends when admin reveals results",
     "votes": "Votes: {{count}}",
-    "youVoted": "You voted for this!",
     "vote": "Vote",
-    "endVoting": "End Voting (Admin)",
     "endingVoting": "Ending Voting...",
     "endVotingReveal": "End Voting & Reveal Results",
     "advanced": "Advanced!",
-    "matchWinner": "Match Winner!",
     "coinToss": "Coin Toss!",
     "tie": "It's a tie!",
     "coinDecides": "The coin will decide the winner",
     "heads": "Heads",
     "tails": "Tails",
     "wins": "Wins!",
-    "advancesToNext": "{{username}} advances to the next round!",
     "congratulations": "Congratulations!",
     "betterLuck": "Better luck next time!",
-    "nextMatch": "Next Match",
     "backToBracket": "Back to Bracket"
   },
   "imageSubmission": {
@@ -171,7 +150,13 @@
     "submitImage": "Submit Image",
     "gemini": "Create with Gemini",
     "dropImageHere": "Drop your image here, or click to browse",
-    "imageFormats": "PNG, JPG, GIF up to 10MB"
+    "imageFormats": "PNG, JPG, GIF up to 10MB",
+    "playerSubmission": "{{username}}'s Submission",
+    "clickOutside": "Click outside the image or press the X to close",
+    "close": "Close",
+    "yourVote": "Your Vote",
+    "voteFor": "Vote for",
+    "votes": "{{count}} votes"
   },
   "winner": {
     "champion": "CHAMPION!",
@@ -186,7 +171,6 @@
     "backToLobby": "Back to Lobby",
     "tournamentStats": "Tournament Statistics",
     "participants": "Participants: {{count}}",
-    "rounds": "Rounds Played: {{count}}",
     "share": "Share Victory!"
   },
   "admin": {
@@ -225,34 +209,15 @@
     "createBotButton": "Create Bot",
     "creating": "Creating...",
     "deleteUser": "Delete User",
-    "confirmDelete": "Are you sure you want to delete this user?",
-    "delete": "Delete",
-    "deleting": "Deleting...",
-    "tournamentActions": "Tournament Actions",
-    "resetTournament": "Reset Tournament",
-    "deleteTournament": "Delete Tournament"
+    "delete": "Delete"
   },
   "errors": {
-    "generic": "An error occurred",
-    "failedToLoad": "Failed to load data",
-    "failedToSubmit": "Failed to submit",
-    "failedToVote": "Failed to vote",
-    "failedToJoin": "Failed to join tournament",
-    "failedToStart": "Failed to start tournament",
-    "failedToCreate": "Failed to create",
-    "tryAgain": "Please try again"
+    "loadFailed": "Failed to load data",
+    "updateFailed": "Failed to update",
+    "deleteFailed": "Failed to delete"
   },
   "common": {
     "loading": "Loading...",
-    "joining": "Joining...",
-    "save": "Save",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "close": "Close",
-    "yes": "Yes",
-    "no": "No",
-    "ok": "OK",
-    "error": "Error",
-    "success": "Success"
+    "cancel": "Cancel"
   }
 }

@@ -1,7 +1,7 @@
 {
   "app": {
     "title": "ImaginArena",
-    "loading": "Caricamento ImaginArena..."
+    "loading": "Caricamento di ImaginArena..."
   },
   "auth": {
     "joinArena": "Entra nell'Arena",
@@ -96,25 +96,17 @@
   },
   "tournament": {
     "bracket": "Tabellone del Torneo",
-    "round1": "Sedicesimi di finale",
-    "round2": "Ottavi di finale",
+    "round32": "Sedicesimi di finale",
+    "round16": "Ottavi di finale",
     "quarterFinal": "Quarti di Finale",
     "semiFinal": "Semifinali",
     "final": "Finale",
-    "vs": "vs",
     "winner": "Vincitore",
     "inProgress": "Partita in Corso",
-    "waiting": "In Attesa",
-    "viewMatch": "Visualizza Match",
     "viewBracket": "Visualizza Tabellone del Torneo",
     "backToLobby": "Torna alla Lobby"
   },
   "match": {
-    "round": "Turno {{number}}",
-    "final": "Finale",
-    "prompt": "Prompt",
-    "yourMatch": "Il Tuo Match",
-    "spectating": "Spettatore",
     "noMatchSelected": "Nessuna partita slezionata",
     "refreshData": "Aggiorna dati del match",
     "winnerAnnounce": "Vincitore: {{username}}!",
@@ -126,34 +118,23 @@
     "waitingForSubmissions": "In attesa dell'immagine...",
     "waitingForPlayer": "Aspettando {{username}}",
     "playersSubmitting": "I giocatori stanno creando e inviando le loro immagini",
-    "submitted": "Inviata!",
+    "submitted": "Immagine inviata!",
     "adminQuickWinner": "Admin: Assegna vincitore manualmente (Debug)",
     "skipToWinner": "Salta caricamento immagini e voti - assegna vincitore istantaneamente",
     "adminRevealHint": "Solo Admin - Clicca per rivelare i voti e determinare il vincitore",
     "instantWinner": "Assegna istantaneamente un vincitore senza calcolo dei voti",
     "submissionPhase": "Fase di caricamento immagini",
     "votingPhase": "Votazione Aperta",
-    "votingPhase2": "Fase di Voto",
-    "resultsPhase": "Risultati",
-    "timeRemaining": "Tempo Rimanente",
-    "submitYourImage": "Invia la Tua Immagine",
-    "uploadImage": "Carica Immagine",
-    "changeImage": "Cambia Immagine",
     "submitting": "Invio in corso...",
-    "bothSubmitted": "Entrambi i giocatori hanno inviato!",
     "bothPlayersSubmit": "Entrambi i giocatori devono caricare le loro immagini prima che il voto possa iniziare.",
     "voteForFavorite": "Vota per la tua immagine preferita!",
     "othersVoting": "Gli altri giocatori stanno votando sul tuo match",
     "alreadyVoted": "Hai giá votato",
-    "votingEnds": "Il voto termina quando l'admin rivela i risultati",
     "votes": "Voti: {{count}}",
-    "youVoted": "Hai votato per questa!",
     "vote": "Vota",
-    "endVoting": "Termina Votazione (Admin)",
     "endingVoting": "Terminando fase di voto...",
     "endVotingReveal": "Termina Voto & Rivela Risultati",
     "advanced": "Avanza!",
-    "matchWinner": "Vincitore del Match!",
     "coinToss": "Lancio della Moneta!",
     "tie": "È un pareggio!",
     "coinDecides": "La moneta deciderà il vincitore",
@@ -163,7 +144,6 @@
     "advancesToNext": "{{username}} avanza al turno successivo!",
     "congratulations": "Congratulazioni!",
     "betterLuck": "Più fortuna la prossima volta!",
-    "nextMatch": "Prossimo Match",
     "backToBracket": "Torna al Tabellone"
   },
   "imageSubmission": {
@@ -171,7 +151,13 @@
     "submitImage": "Carica Immagine",
     "gemini": "Crea con Gemini",
     "dropImageHere": "Trascina la tua immagine qui, or clicca per cercare nella galleria",
-    "imageFormats": "PNG, JPG, GIF fino a 10MB"
+    "imageFormats": "PNG, JPG, GIF fino a 10MB",
+    "playerSubmission": "Immagine di {{username}}",
+    "clickOutside": "Clicca fuori dall'immagine or premi la X per chiudere",
+    "close": "Chiudi",
+    "yourVote": "Il tuo Voto",
+    "voteFor": "Vota per",
+    "votes": "{{count}} voti"
   },
   "winner": {
     "champion": "CAMPIONE!",
@@ -186,7 +172,6 @@
     "backToLobby": "Torna alla Lobby",
     "tournamentStats": "Statistiche del Torneo",
     "participants": "Partecipanti: {{count}}",
-    "rounds": "Turni Giocati: {{count}}",
     "share": "Condividi la vittoria!"
   },
   "admin": {
@@ -225,34 +210,15 @@
     "createBotButton": "Crea Bot",
     "creating": "Creazione...",
     "deleteUser": "Elimina Utente",
-    "confirmDelete": "Sei sicuro di voler eliminare questo utente?",
-    "delete": "Elimina",
-    "deleting": "Eliminazione...",
-    "tournamentActions": "Azioni Torneo",
-    "resetTournament": "Resetta Torneo",
-    "deleteTournament": "Elimina Torneo"
+    "delete": "Elimina"
   },
   "errors": {
-    "generic": "Si è verificato un errore",
-    "failedToLoad": "Caricamento dati fallito",
-    "failedToSubmit": "Invio fallito",
-    "failedToVote": "Voto fallito",
-    "failedToJoin": "Impossibile unirsi al torneo",
-    "failedToStart": "Impossibile avviare il torneo",
-    "failedToCreate": "Creazione fallita",
-    "tryAgain": "Riprova"
+    "loadFailed": "Caricamento dati fallito",
+    "updateFailed": "Aggiornamento fallito",
+    "deleteFailed": "Eliminazione fallita"
   },
   "common": {
     "loading": "Caricamento...",
-    "joining": "Unendoti...",
-    "save": "Salva",
-    "cancel": "Annulla",
-    "confirm": "Conferma",
-    "close": "Chiudi",
-    "yes": "Sì",
-    "no": "No",
-    "ok": "OK",
-    "error": "Errore",
-    "success": "Successo"
+    "cancel": "Annulla"
   }
 }
