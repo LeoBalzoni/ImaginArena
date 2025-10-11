@@ -35,6 +35,7 @@
     "unknownStatus": "Unknown status",
     "tournament": "Tournament",
     "admin": "Admin",
+    "tips": "Tips",
     "signOut": "Sign out"
   },
   "footer": {
@@ -271,5 +272,60 @@
       "description": "ImaginArena was built as a passion project to combine competitive gaming with creative expression. Connect with me to learn more about this project or discuss collaboration opportunities."
     },
     "joinTournament": "Join a Tournament"
+  },
+  "tips": {
+    "title": "Prompt Crafting Tips",
+    "subtitle": "Master the art of creating winning prompts for image generation",
+    "backToApp": "Back to App",
+    "startCreating": "Start Creating",
+    "anatomy": {
+      "title": "Anatomy of a Winning Prompt",
+      "formulaTitle": "Champion Formula:",
+      "formula": "[Subject] [Action], in the style of [Artist/Genre], [Lighting], [Composition], [Mood/Effect]",
+      "subject": {
+        "title": "Subject",
+        "description": "Identify your star. Be specific, evocative. 3 words or less."
+      },
+      "action": {
+        "title": "Action",
+        "description": "What's happening? Static is forgettable. Create movement, narrative."
+      },
+      "style": {
+        "title": "Style",
+        "description": "Your artistic DNA. Let personality shine through genre."
+      },
+      "lighting": {
+        "title": "Lighting & Mood",
+        "description": "Emotion maker. Describe lighting to set atmosphere."
+      },
+      "composition": {
+        "title": "Composition",
+        "description": "Your camera angle. Drastically changes viewer experience."
+      }
+    },
+    "styleLibrary": {
+      "title": "Style Library",
+      "description": "Explore different artistic styles, materials, photography techniques, and lighting setups to enhance your prompts. Mix and match these elements to create unique and compelling images.",
+      "examplePrompt": "Example prompt",
+      "butAlso": "But also...",
+      "categories": {
+        "medium": {
+          "title": "Medium",
+          "description": "The artistic medium or technique used to create the image"
+        },
+        "material": {
+          "title": "Material",
+          "description": "The physical or visual material that defines the subject's appearance"
+        },
+        "photography": {
+          "title": "Photography",
+          "description": "Camera angles and photographic techniques for unique perspectives"
+        },
+        "lighting": {
+          "title": "Lighting",
+          "description": "Lighting styles that set the mood and atmosphere of your image"
+        }
+      }
+    }
   }
 }

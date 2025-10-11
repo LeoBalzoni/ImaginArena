@@ -10,6 +10,7 @@ import {
   Settings,
   Sparkles,
   Info,
+  Lightbulb,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useStore } from "../store/useStore";
@@ -110,14 +111,29 @@ export const Header: React.FC = () => {
               {t("footer.about")}
             </Button>
             <Button
-              variant={currentView === "lobby" ? "primary" : "ghost"}
+              variant="ghost"
               size="sm"
-              onClick={() => setCurrentView("lobby")}
+              onClick={() => navigate("/tips")}
               className="transition-all duration-200"
             >
-              <Users className="w-4 h-4" />
-              {t("header.lobby")}
+              <Lightbulb className="w-4 h-4" />
+              {t("header.tips")}
             </Button>
+
+            {/* Only show Lobby button when tournament is in lobby status or no tournament */}
+            {(!currentTournament ||
+              currentTournament.status === "lobby" ||
+              currentTournament.status === "finished") && (
+              <Button
+                variant={currentView === "lobby" ? "primary" : "ghost"}
+                size="sm"
+                onClick={() => setCurrentView("lobby")}
+                className="transition-all duration-200"
+              >
+                <Users className="w-4 h-4" />
+                {t("header.lobby")}
+              </Button>
+            )}
 
             {currentTournament && currentTournament.status !== "lobby" && (
               <Button
@@ -212,14 +228,27 @@ export const Header: React.FC = () => {
               <span className="text-xs">{t("footer.about")}</span>
             </Button>
             <Button
-              variant={currentView === "lobby" ? "primary" : "ghost"}
+              variant="ghost"
               size="sm"
-              onClick={() => setCurrentView("lobby")}
+              onClick={() => navigate("/tips")}
               className="flex-1 px-2 py-1.5 justify-center"
             >
-              <Users className="w-4 h-4" />
-              <span className="text-xs">{t("header.lobby")}</span>
+              <Lightbulb className="w-4 h-4" />
+              <span className="text-xs">{t("header.tips")}</span>
             </Button>
+
+            {/* Only show Lobby button when tournament is in lobby status or no tournament */}
+            {(!currentTournament || currentTournament.status === "lobby") && (
+              <Button
+                variant={currentView === "lobby" ? "primary" : "ghost"}
+                size="sm"
+                onClick={() => setCurrentView("lobby")}
+                className="flex-1 px-2 py-1.5 justify-center"
+              >
+                <Users className="w-4 h-4" />
+                <span className="text-xs">{t("header.lobby")}</span>
+              </Button>
+            )}
 
             {currentTournament && currentTournament.status !== "lobby" && (
               <Button

@@ -35,6 +35,7 @@
     "unknownStatus": "Stato sconosciuto",
     "tournament": "Torneo",
     "admin": "Admin",
+    "tips": "Consigli",
     "signOut": "Esci"
   },
   "footer": {
@@ -271,5 +272,60 @@
       "description": "ImaginArena è stato costruito come un progetto passionale per combinare il gaming competitivo con l'espressione creativa. Connettiti con me per saperne di più su questo progetto o discutere opportunità di collaborazione."
     },
     "joinTournament": "Unisciti a un Torneo"
+  },
+  "tips": {
+    "title": "Consigli per Creare Prompt",
+    "subtitle": "Padroneggia l'arte di creare prompt vincenti per la generazione di immagini",
+    "backToApp": "Torna all'App",
+    "startCreating": "Inizia a Creare",
+    "anatomy": {
+      "title": "Anatomia di un Prompt Vincente",
+      "formulaTitle": "Formula del Campione:",
+      "formula": "[Soggetto] [Azione], nello stile di [Artista/Genere], [Illuminazione], [Composizione], [Mood/Effetto]",
+      "subject": {
+        "title": "Soggetto",
+        "description": "Identifica la tua stella. Sii specifico, evocativo. 3 parole o meno."
+      },
+      "action": {
+        "title": "Azione",
+        "description": "Cosa sta succedendo? Lo statico è dimenticabile. Crea movimento, narrativa."
+      },
+      "style": {
+        "title": "Stile",
+        "description": "Il tuo DNA artistico. Lascia che la personalità brilli attraverso il genere."
+      },
+      "lighting": {
+        "title": "Illuminazione & Mood",
+        "description": "Creatore di emozioni. Descrivi l'illuminazione per impostare l'atmosfera."
+      },
+      "composition": {
+        "title": "Composizione",
+        "description": "L'angolazione della tua camera. Cambia drasticamente l'esperienza dello spettatore."
+      }
+    },
+    "styleLibrary": {
+      "title": "Libreria di Stili",
+      "description": "Esplora diversi stili artistici, materiali, tecniche fotografiche e configurazioni di illuminazione per migliorare i tuoi prompt. Mescola e abbina questi elementi per creare immagini uniche e coinvolgenti.",
+      "examplePrompt": "Esempio di prompt",
+      "butAlso": "Ma anche...",
+      "categories": {
+        "medium": {
+          "title": "Medium",
+          "description": "Il medium o la tecnica artistica utilizzata per creare l'immagine"
+        },
+        "material": {
+          "title": "Materiale",
+          "description": "Il materiale fisico o visivo che definisce l'aspetto del soggetto"
+        },
+        "photography": {
+          "title": "Fotografia",
+          "description": "Angolazioni della camera e tecniche fotografiche per prospettive uniche"
+        },
+        "lighting": {
+          "title": "Illuminazione",
+          "description": "Stili di illuminazione che impostano il mood e l'atmosfera della tua immagine"
+        }
+      }
+    }
   }
 }

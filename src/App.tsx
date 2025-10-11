@@ -10,6 +10,7 @@ import { WinnerScreen } from "./components/Tournament/WinnerScreen";
 import { MatchScreen } from "./components/Match/MatchScreen";
 import { AdminDashboard } from "./components/Admin/AdminDashboard";
 import { AboutPage } from "./components/About/AboutPage";
+import { TipsPage } from "./components/Tips/TipsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -89,6 +90,11 @@ function App() {
     navigate("/");
   };
 
+  const handleBackFromTips = () => {
+    // Navigate back to main app
+    navigate("/");
+  };
+
   useEffect(() => {
     // Initialize auth listener only once
     if (!authInitialized.current) {
@@ -98,9 +104,10 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Determine current view based on app state (only if not on /about route)
+    // Determine current view based on app state (only if not on /about or /tips route)
     if (
       location.pathname !== "/about" &&
+      location.pathname !== "/tips" &&
       isAuthenticated &&
       user &&
       currentTournament
@@ -147,6 +154,20 @@ function App() {
           <Route
             path="/about"
             element={<AboutPage onBack={handleBackFromAbout} />}
+          />
+        </Routes>
+      </ErrorBoundary>
+    );
+  }
+
+  // Tips page route (accessible without authentication)
+  if (location.pathname === "/tips") {
+    return (
+      <ErrorBoundary>
+        <Routes>
+          <Route
+            path="/tips"
+            element={<TipsPage onBack={handleBackFromTips} />}
           />
         </Routes>
       </ErrorBoundary>
